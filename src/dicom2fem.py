@@ -252,10 +252,10 @@ class MainWindow(QMainWindow):
             self.setLabelText(self.text_dcm_data, self.getDcmInfo())
             self.statusBar().showMessage('Ready')
             self.setLabelText(self.text_seg_in, 'DICOM reader')
-            
+
         else:
             self.statusBar().showMessage('No DICOM data in direcotry!')
-            
+
     def reduceDcm(self, event=None, factor=None, default=0.25):
         if self.dcm_3Ddata is None:
             self.statusBar().showMessage('No DICOM data!')
@@ -283,7 +283,7 @@ class MainWindow(QMainWindow):
         for ii in factor:
            if ii < 0.0 or ii > 1.0:
                self.dcm_zoom = None
-           
+
         if self.dcm_zoom is not None:
             self.dcm_3Ddata = ndimage.zoom(self.dcm_3Ddata, self.dcm_zoom,
                                            prefilter=False, mode='nearest')
@@ -303,59 +303,15 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage('Cropping DICOM data...')
         QApplication.processEvents()
 
-        is_reduced = False
-        shape = self.dcm_3Ddata.shape
-        max12 = np.max(shape[:2])
-        if max12 > 128:
-            is_reduced = True
-            czoom = [128.0 / max12] * 2
-            if shape[2] > 32:
-                czoom.append(32.0 / shape[2])
-
-            else:
-                czoom.append(1.0)
-
-            czoom = np.array(czoom)
-            reduced_3Ddata = ndimage.zoom(self.dcm_3Ddata, czoom,
-                                          prefilter=False, mode='nearest')
-        else:
-            reduced_3Ddata = self.dcm_3Ddata
-             
-        pyed = QTSeedEditor(reduced_3Ddata, mode='crop')
+        pyed = QTSeedEditor(self.dcm_3Ddata, mode='crop')
         pyed.exec_()
-        nzs = pyed.getSeeds().nonzero()
+        self.dcm_3Ddata = pyed.getImg()
+        self.dcm_offsetmm = pyed.getOffset()
 
-        if nzs is not None:
-            cri = []
-            for ii in range(3):
-                if nzs[ii].shape[0] == 0:
-                    nzs = None
-                    break
-                smin, smax = np.min(nzs[ii]), np.max(nzs[ii])
-                if smin == smax:
-                    nzs = None
-                    break
+        self.setLabelText(self.text_dcm_data, self.getDcmInfo())
+        self.statusBar().showMessage('Ready')
 
-                cri.append((smin, smax))            
-            cri = np.array(cri)
-
-            if is_reduced and nzs is not None:
-                aux = (cri.T * (1.0 / czoom)).T
-                cri[:,0] = np.floor(aux[:,0])
-                cri[:,1] = np.ceil(aux[:,1])
-
-        if nzs is not None:
-            crop = self.dcm_3Ddata[cri[0][0]:(cri[0][1] + 1),
-                                   cri[1][0]:(cri[1][1] + 1),
-                                   cri[2][0]:(cri[2][1] + 1)] 
-            self.dcm_3Ddata = np.ascontiguousarray(crop)
-            self.dcm_offsetmm = cri[:,0] * self.voxel_sizemm
-
-            self.setLabelText(self.text_dcm_data, self.getDcmInfo())
-            self.statusBar().showMessage('Ready')
-
-        else:
-            self.statusBar().showMessage('No crop information!')
+        self.statusBar().showMessage('Ready')
 
     def saveDcm(self, event=None, filename=None):
         if self.dcm_3Ddata is not None:
@@ -373,12 +329,12 @@ class MainWindow(QMainWindow):
 
                 self.setLabelText(self.text_dcm_out, filename)
                 self.statusBar().showMessage('Ready')
-            
+
             else:
                 self.statusBar().showMessage('No output file specified!')
 
         else:
-            self.statusBar().showMessage('No DICOM data!')      
+            self.statusBar().showMessage('No DICOM data!')
 
     def loadDcm(self, event=None, filename=None):
         self.statusBar().showMessage('Loading DICOM data...')
@@ -393,17 +349,17 @@ class MainWindow(QMainWindow):
             data = loadmat(filename,
                            variable_names=['data', 'voxelsizemm', 'offsetmm'],
                            appendmat=False)
-            
+
             self.dcm_3Ddata = data['data']
             self.voxel_sizemm = data['voxelsizemm']
-            self.dcm_offsetmm = data['offsetmm'] 
+            self.dcm_offsetmm = data['offsetmm']
             self.setVoxelVolume(self.voxel_sizemm.reshape((3,)))
             self.setLabelText(self.text_seg_in, filename)
             self.statusBar().showMessage('Ready')
-            
+
         else:
             self.statusBar().showMessage('No input file specified!')
-            
+
     def checkSegData(self):
         if self.segmentation_data is None:
             self.statusBar().showMessage('No SEG data!')
@@ -431,14 +387,14 @@ class MainWindow(QMainWindow):
         pyed = QTSeedEditor(self.dcm_3Ddata,
                             seeds=self.segmentation_seeds,
                             modeFun=igc.interactivity_loop,
-                            voxelVolume=self.voxel_volume)
+                            voxelSize=self.voxel_sizemm)
         pyed.exec_()
 
         self.segmentation_data = pyed.getContours()
         self.segmentation_seeds = pyed.getSeeds()
         self.checkSegData()
 
-    def manualSeg(self): 
+    def manualSeg(self):
         if self.dcm_3Ddata is None:
             self.statusBar().showMessage('No DICOM data!')
             return
@@ -446,7 +402,7 @@ class MainWindow(QMainWindow):
         pyed = QTSeedEditor(self.dcm_3Ddata,
                             seeds=self.segmentation_data,
                             mode='draw',
-                            voxelVolume=self.voxel_volume)
+                            voxelSize=self.voxel_sizemm)
         pyed.exec_()
 
         self.segmentation_data = pyed.getSeeds()
@@ -463,13 +419,15 @@ class MainWindow(QMainWindow):
 
             if len(filename) > 0:
 
-                outdata = {'segdata': self.segmentation_data,
-                            'voxelsizemm': self.voxel_sizemm,
-                            'offsetmm': self.dcm_offsetmm}
+                outdata = {'data': self.dcm_3Ddata,
+                           'segdata': self.segmentation_data,
+                           'voxelsizemm': self.voxel_sizemm,
+                           'offsetmm': self.dcm_offsetmm}
 
                 if self.segmentation_seeds is not None:
                     outdata['segseeds'] = self.segmentation_seeds
 
+                print outdata
                 savemat(filename, outdata, appendmat=False)
                 self.setLabelText(self.text_seg_out, filename)
                 self.statusBar().showMessage('Ready')
@@ -478,7 +436,7 @@ class MainWindow(QMainWindow):
                 self.statusBar().showMessage('No output file specified!')
 
         else:
-            self.statusBar().showMessage('No segmentation data!')      
+            self.statusBar().showMessage('No segmentation data!')
 
     def loadSeg(self, event=None, filename=None):
         if filename is None:
@@ -490,10 +448,11 @@ class MainWindow(QMainWindow):
             QApplication.processEvents()
 
             data = loadmat(filename,
-                           variable_names=['segdata', 'segseeds',
+                           variable_names=['data', 'segdata', 'segseeds',
                                            'voxelsizemm', 'offsetmm'],
                            appendmat=False)
 
+            self.dcm_3Ddata = data['data']
             self.segmentation_data = data['segdata']
             if 'segseeds' in data:
                 self.segmentation_seeds = data['segseeds']
@@ -502,7 +461,7 @@ class MainWindow(QMainWindow):
                 self.segmentation_seeds = None
 
             self.voxel_sizemm = data['voxelsizemm']
-            self.dcm_offsetmm = data['offsetmm'] 
+            self.dcm_offsetmm = data['offsetmm']
             self.setVoxelVolume(self.voxel_sizemm.reshape((3,)))
             self.setLabelText(self.text_mesh_in, filename)
             self.statusBar().showMessage('Ready')
