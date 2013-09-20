@@ -28,7 +28,7 @@ class QVTKViewer(QDialog):
         btn_close = QPushButton("close", self)
         btn_close.clicked.connect(self.close)
         grid.addWidget(btn_close, 1, 0, 1, 1)
-        
+
         self.setLayout(grid)
         self.setWindowTitle('VTK Viewer')
         self.show()
@@ -45,7 +45,7 @@ class QVTKViewer(QDialog):
 
         QDialog.__init__(self)
         self.initUI()
-        
+
         ren = vtk.vtkRenderer()
         self.vtkWidget.GetRenderWindow().AddRenderer(ren)
         iren = self.vtkWidget.GetRenderWindow().GetInteractor()
@@ -88,12 +88,12 @@ class QVTKViewer(QDialog):
 
         ren.ResetCamera()
         iren.Initialize()
-        
+
 usage = '%prog [options]\n' + __doc__.rstrip()
 help = {
     'in_file': 'input VTK file with unstructured mesh',
 }
-  
+
 def main():
     parser = OptionParser(description='Simple VTK Viewer')
     parser.add_option('-f','--filename', action='store',
