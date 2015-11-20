@@ -24,12 +24,18 @@ from PyQt4.QtGui import QApplication, QMainWindow, QWidget,\
      QFont, QInputDialog, QComboBox, QPixmap
 from PyQt4.Qt import QString
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                             '..', 'pyseg_base', 'pysegbase'))
+try:
+    from pysegbase import dcmreaddata as dcmreader
+    from pysegbase import pycut
 
-import dcmreaddata as dcmreader
-from seed_editor_qt import QTSeedEditor
-import pycut
+    from pysegbase.seed_editor_qt import QTSeedEditor
+except:
+    sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                '..', 'pyseg_base', 'pysegbase'))
+
+    import dcmreaddata as dcmreader
+    from seed_editor_qt import QTSeedEditor
+    import pycut
 
 from meshio import supported_capabilities, supported_formats, MeshIO
 from seg2fem import gen_mesh_from_voxels, gen_mesh_from_voxels_mc
