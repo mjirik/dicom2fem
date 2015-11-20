@@ -38,6 +38,7 @@ requirements:
     - matplotlib
     - mock
     - nose
+    - pysegbase
 
   run:
     - python
@@ -45,6 +46,7 @@ requirements:
     - scipy
     - pyyaml
     - matplotlib
+    - pysegbase
 
 test:
   # Python imports
