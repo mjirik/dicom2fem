@@ -26,7 +26,6 @@ from PyQt4.Qt import QString
 
 try:
     from pysegbase import dcmreaddata as dcmreader
-    from pysegbase import pycut
 
     from pysegbase.seed_editor_qt import QTSeedEditor
 except:
@@ -37,7 +36,6 @@ except:
 
     import dcmreaddata as dcmreader
     from seed_editor_qt import QTSeedEditor
-    import pycut
 
 from meshio import supported_capabilities, supported_formats, MeshIO
 from seg2fem import gen_mesh_from_voxels, gen_mesh_from_voxels_mc
@@ -611,6 +609,13 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage('Ready')
 
     def autoSeg(self):
+        # this ugly import is necessary due to unresolved pygco dependency 
+        # in conda build
+        try:
+            from pysegbase import pycut
+        except:
+            import pycut
+
         if self.dcm_3Ddata is None:
             self.statusBar().showMessage('No DICOM data!')
             return
