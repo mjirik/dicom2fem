@@ -39,6 +39,7 @@ requirements:
     - mock
     - nose
     - pysegbase
+    - vtk
 
   run:
     - python
@@ -47,6 +48,7 @@ requirements:
     - pyyaml
     - matplotlib
     - pysegbase
+    - vtk
 
 test:
   # Python imports
