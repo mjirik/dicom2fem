@@ -30,6 +30,8 @@ try:
 
     from pysegbase.seed_editor_qt import QTSeedEditor
 except:
+    import traceback
+    traceback.print_exc()
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 '..', 'pyseg_base', 'pysegbase'))
 
