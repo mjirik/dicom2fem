@@ -50,6 +50,7 @@ requirements:
     - matplotlib
     - pysegbase
     - vtk
+    - pyqt 4.11.*
 
 test:
   # Python imports
