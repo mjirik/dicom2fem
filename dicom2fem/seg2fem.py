@@ -427,7 +427,7 @@ def gen_mesh_from_voxels_mc(voxels, voxelsize,
     ncoors = nm.zeros((nnod, 3), dtype=nm.float64)
 
     for ii, idxs in enumerate(uniq):
-        ntri[nm.array(idxs)] = ii
+        ntri[nm.array(idxs, dtype=np.int)] = ii
         ncoors[ii] = coors[idxs[0]]
 
     mesh = Mesh.from_data('voxel_mc_data',
