@@ -20,6 +20,7 @@ from numpy.linalg import lapack_lite
 from mesh import Mesh
 from marching_cubes import marching_cubes
 from genfem_base import set_nodemtx, get_snodes_uedges
+import numpy as np
 
 # compatibility
 try:
