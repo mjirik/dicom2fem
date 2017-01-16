@@ -8,6 +8,9 @@ Example:
 $ seg2fem.py -f brain_seg.mat
 """
 
+import logging
+logger = logging.getLogger(__name__)
+
 from optparse import OptionParser
 from scipy.io import loadmat
 import scipy.sparse as sps
