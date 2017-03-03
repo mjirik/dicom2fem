@@ -45,7 +45,7 @@ requirements:
   run:
     - python
     - numpy
-    - scipy
+    - scipy>=0.18.1
     - pyyaml
     - matplotlib
     - pysegbase

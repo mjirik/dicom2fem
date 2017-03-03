@@ -416,6 +416,7 @@ def gen_mesh_from_voxels_mc(voxels, voxelsize,
 
     nel, nnd, dim = tri.shape
     coors = tri.reshape((nel * nnd, dim))
+    # tree = scsp.kdtree.KDTree(coors)
     tree = scsp.ckdtree.cKDTree(coors)
     eps = nm.max(coors.max(axis=0) - coors.min(axis=0)) *1e-6
     dist, idx = tree.query(coors, k=24, distance_upper_bound=eps)
