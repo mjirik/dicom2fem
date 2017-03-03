@@ -370,6 +370,7 @@ def iso_element(cval, coors, isoval):
     return tria
 
 def marching_cubes(mtx, vsize=nm.array([1.0, 1.0, 1.0]), isoval=0.5):
+    vsize = nm.asarray(vsize)
     vidxs = nm.where(mtx)
 
     edims = nm.array(mtx.shape) + 2
