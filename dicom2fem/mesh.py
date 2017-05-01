@@ -614,25 +614,29 @@ class Mesh( Struct ):
                 self.conns.append(fdata[i4])
 
     def write(self, filename=None, io=None,
-              coors=None, igs=None, out=None, float_format=None, **kwargs):
+              coors=None, igs=None, out=None, float_format=None, lc_all="C", **kwargs):
         """
         Write mesh + optional results in `out` to a file.
 
         Parameters
         ----------
-        filename : str, optional
+        :param filename: str, optional
             The file name. If None, the mesh name is used instead.
-        io : MeshIO instance or 'auto', optional
+        :param io : MeshIO instance or 'auto', optional
             Passing 'auto' respects the extension of `filename`.
-        coors : array, optional
+        :param coors: array, optional
             The coordinates that can be used instead of the mesh coordinates.
-        igs : array_like, optional
+        :param igs: array_like, optional
             Passing a list of group ids selects only those groups for writing.
-        out : dict, optional
+        :param out: dict, optional
             The output data attached to the mesh vertices and/or cells.
-        float_format : str, optional
+        :param float_format: str, optional
             The format string used to print floats in case of a text file
             format.
+        :param lc_all: "C" or None. Locale system settings. It can be used to
+            specify float format with dot or comma.
+            Dot format (f.e. 1.23) if "C" is used.
+            If is set to None, no operation is done. Format is system default.
         **kwargs : dict, optional
             Additional arguments that can be passed to the `MeshIO` instance.
         """
@@ -643,6 +647,7 @@ class Mesh( Struct ):
             io = self.io
             if io is None:
                 io = 'auto'
+
 
         if io == 'auto':
             io = MeshIO.any_from_filename( filename )
@@ -655,6 +660,9 @@ class Mesh( Struct ):
 
         aux_mesh = Mesh.from_data( self.name, coors, self.ngroups,
                                    self.conns, self.mat_ids, self.descs, igs )
+        if lc_all is not None:
+            import locale
+            locale.setlocale(locale.LC_ALL, lc_all)
         io.set_float_format( float_format )
         io.write( filename, aux_mesh, out, **kwargs )
 
