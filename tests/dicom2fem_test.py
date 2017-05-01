@@ -39,7 +39,9 @@ def donut():
 
 class MyTestCase(unittest.TestCase):
     def test_mc(self):
+
         import dicom2fem.seg2fem
+        output_fn = "donut.vtk"
         datap = donut()
         segmentation = datap["segmentation"] == 1
         voxelsize_mm = datap["voxelsize_mm"]
@@ -54,7 +56,8 @@ class MyTestCase(unittest.TestCase):
         #     pass
         #     # mesh_data = gen_mesh_from_voxels_mc(segmentation, voxelsize_mm * 1.0e-2)
         #     # mesh_data.coors +=
-        mesh_data.write(op.expanduser("donut.vtk"))
+        mesh_data.write(op.expanduser(output_fn))
+        op.exists(output_fn)
 
 
     def test_mc_skimage(self):
@@ -84,7 +87,7 @@ class MyTestCase(unittest.TestCase):
         mesh_data.write(op.expanduser("donut.vtk"))
 
 
-    def test_mc_skimage_orig(self):
+    def test_mc_skimage_orig_example(self):
         import numpy as np
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d.art3d import Poly3DCollection
