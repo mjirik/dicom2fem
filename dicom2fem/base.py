@@ -3,7 +3,7 @@
 
 import time, sys, os
 from copy import copy, deepcopy
-from types import UnboundMethodType
+# from types import UnboundMethodType
 
 import numpy as nm
 import scipy.sparse as sp
@@ -178,10 +178,10 @@ def try_imports(imports, fail_msg=None):
     msgs = []
     for imp in imports:
         try:
-            exec imp
+            exec(imp)
             break
 
-        except Exception, inst:
+        except Exception as inst:
             msgs.append(str(inst))
 
     else:
@@ -499,7 +499,7 @@ class Container( Struct ):
                 self._objs[ii] = obj
                 self.names[ii] = obj.name
 
-        except (IndexError, ValueError), msg:
+        except (IndexError, ValueError) as msg:
             raise IndexError(msg)
 
     def __getitem__(self, ii):
@@ -511,7 +511,7 @@ class Container( Struct ):
 
             return  self._objs[ii]
 
-        except (IndexError, ValueError), msg:
+        except (IndexError, ValueError) as msg:
             raise IndexError(msg)
 
     def __iter__( self ):
@@ -652,9 +652,9 @@ class OneTypeList( list ):
             if ir:
                 return list.__getitem__( self, ir[0] )
             else:
-                raise IndexError, ii
+                raise IndexError(ii)
         else:
-            raise IndexError, ii
+            raise IndexError(ii)
     
 
     def __str__( self ):
@@ -779,9 +779,9 @@ def insert_static_method( cls, function ):
 
 ##
 # 23.10.2007, c
-def insert_method( instance, function ):
-    setattr( instance, function.__name__,
-             UnboundMethodType( function, instance, instance.__class__ ) )
+# def insert_method( instance, function ):
+#     setattr( instance, function.__name__,
+#              UnboundMethodType( function, instance, instance.__class__ ) )
 
 def use_method_with_name( instance, method, new_name ):
     setattr( instance, new_name, method )

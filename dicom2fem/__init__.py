@@ -3,5 +3,5 @@ __all__ = ['base', 'dicom2fem', 'genfem_base', 'ioutils', 'marching_cubes',
 
 __version__ = "1.0.19"
 
-import base, dicom2fem, genfem_base, ioutils, marching_cubes
-import mesh, meshio, seg2fem, viewer, vtk2stl
+from . import base, dicom2fem, genfem_base, ioutils, marching_cubes
+from . import mesh, meshio, seg2fem, viewer, vtk2stl
