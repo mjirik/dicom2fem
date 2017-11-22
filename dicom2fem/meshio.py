@@ -833,7 +833,7 @@ class VTKMeshIO( MeshIO ):
                 _write_tensors(aux)
 
             else:
-                raise NotImplementedError, nc
+                raise NotImplementedError(nc)
 
         if out is not None:
             cell_keys = [key for key, val in out.iteritems()
@@ -883,7 +883,7 @@ class VTKMeshIO( MeshIO ):
                 _write_tensors(aux)
 
             else:
-                raise NotImplementedError, (nr, nc)
+                raise NotImplementedError( (nr, nc) )
 
         fd.close()
 
@@ -1559,7 +1559,7 @@ class HDF5MeshIO( MeshIO ):
                 return mode, name
 
         fd.close()
-        raise KeyError, 'non-existent data: %s' % dname
+        raise KeyError('non-existent data: %s' % dname)
 
     def read_time_history( self, node_name, indx, filename = None ):
         filename = get_default( filename, self.filename )
