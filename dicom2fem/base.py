@@ -120,7 +120,7 @@ def mark_time(times, msg=None):
     tt = time.clock()
     times.append(tt)
     if (msg is not None) and (len(times) > 1):
-        print msg, times[-1] - times[-2]
+        print(msg, times[-1] - times[-2])
 
 def import_file(filename, package_name=None):
     """
@@ -210,11 +210,11 @@ def pause( msg = None ):
     f = sys._getframe(1)
     ff = f.f_code
     if (msg):
-        print '%s, %d: %s(), %d: %s' % (ff.co_filename, ff.co_firstlineno,
-                                        ff.co_name, f.f_lineno, msg)
+        print('%s, %d: %s(), %d: %s' % (ff.co_filename, ff.co_firstlineno,
+                                        ff.co_name, f.f_lineno, msg))
     else:
-        print '%s, %d: %s(), %d' % (ff.co_filename, ff.co_firstlineno,
-                                    ff.co_name, f.f_lineno)
+        print('%s, %d: %s(), %d' % (ff.co_filename, ff.co_firstlineno,
+                                    ff.co_name, f.f_lineno))
     spause()
 
 ##
@@ -604,7 +604,7 @@ class Container( Struct ):
     ##
     # 12.06.2007, c
     def print_names( self ):
-        print [obj.name for obj in self._objs]
+        print([obj.name for obj in self._objs])
 
     def get_names( self ):
         return [obj.name for obj in self._objs]
@@ -678,7 +678,7 @@ class OneTypeList( list ):
     ##
     # 12.06.2007, c
     def print_names( self ):
-        print [ii.name for ii in self]
+        print([ii.name for ii in self])
 
     def get_names( self ):
         return [ii.name for ii in self]
@@ -688,13 +688,13 @@ def print_structs(objs):
     utility function."""
     if isinstance(objs, dict):
         for key, vals in objs.iteritems():
-            print key
+            print(key)
             print_structs(vals)
     elif isinstance(objs, list):
         for vals in objs:
             print_structs(vals)
     else:
-        print objs
+        print(objs)
 
 def iter_dict_of_lists(dol, return_keys=False):
     for key, vals in dol.iteritems():

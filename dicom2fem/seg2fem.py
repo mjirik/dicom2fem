@@ -45,7 +45,7 @@ Physical Volume(201)={200};
 """
 
 def output(msg):
-    print msg
+    print(msg)
 
 def elems_q2t(el):
 

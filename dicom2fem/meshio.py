@@ -511,7 +511,7 @@ class MeditMeshIO( MeshIO ):
                               % (nn[0], nn[1], nn[2], nn[3], nn[4], nn[5],
                                  nn[6], nn[7], nn[8] - 1) )
             else:
-                print 'unknown element type!', desc[ig]
+                print('unknown element type!', desc[ig])
                 raise ValueError
 
         fd.close()
@@ -1063,7 +1063,7 @@ class TetgenMeshIO( MeshIO ):
                 regionnum = 1
 
             if regionnum==0:
-                print "see %s, element # %d"%(fele,l[0])
+                print("see %s, element # %d"%(fele,l[0]))
                 raise "there are elements not belonging to any physical entity"
             if regions.has_key(regionnum):
                 regions[regionnum].append(l[0])
@@ -1294,7 +1294,7 @@ class ComsolMeshIO( MeshIO ):
                                 [0, 1, 3, 2, 4, 5, 7, 6], 24 )
 
             else:
-                print 'unknown element type!', desc[ig]
+                print('unknown element type!', desc[ig])
                 raise ValueError
 
         fd.close()
@@ -2391,8 +2391,8 @@ class NEUMeshIO( MeshIO ):
                     els.extend( row )
                     row = fd.readline().split()
                 if g_n_el != len( els ):
-                    print 'wrong number of group elements! (%d == %d)'\
-                        % (n_el, len( els ))
+                    print('wrong number of group elements! (%d == %d)'\
+                        % (n_el, len( els )))
                     raise ValueError
                 groups.append( els )
 
@@ -2412,8 +2412,8 @@ class NEUMeshIO( MeshIO ):
         fd.close()
         
         if int( n_el ) != sum( group_n_els ):
-            print 'wrong total number of group elements! (%d == %d)'\
-                % (int( n_el ), len( group_n_els ))
+            print('wrong total number of group elements! (%d == %d)'\
+                % (int( n_el ), len( group_n_els )))
 
         mat_ids = [None] * int( n_el )
         for ii, els in enumerate( groups ):

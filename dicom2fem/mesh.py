@@ -47,14 +47,14 @@ def find_map( x1, x2, eps = 1e-8, allow_double = False, join = True ):
     i1, i2 = iis[ii] - off1, iis[ii+1] - off2
     dns = nm.where( off1 == off2 )[0]
     if dns.size:
-        print 'double node(s) in:'
+        print('double node(s) in:')
         for dn in dns:
             if off1[dn] == 0:
-                print 'x1: %d %d -> %s %s' % (i1[dn], i2[dn],
-                                              x1[:,i1[dn]], x1[:,i2[dn]])
+                print('x1: %d %d -> %s %s' % (i1[dn], i2[dn],
+                                              x1[:,i1[dn]], x1[:,i2[dn]]))
             else:
-                print 'x2: %d %d -> %s %s' % (i1[dn], i2[dn],
-                                              x2[:,i1[dn]], x2[:,i2[dn]])
+                print('x2: %d %d -> %s %s' % (i1[dn], i2[dn],
+                                              x2[:,i1[dn]], x2[:,i2[dn]]))
         if not allow_double:
             raise ValueError
 
@@ -71,7 +71,7 @@ def merge_mesh( x1, ngroups1, conns1, x2, ngroups2, conns2, cmap, eps = 1e-8 ):
 
     err = nm.sum( nm.sum( nm.abs( x1[cmap[:,0],:-1] - x2[cmap[:,1],:-1] ) ) )
     if abs( err ) > (10.0 * eps):
-        print 'nonmatching meshes!', err
+        print('nonmatching meshes!', err)
         raise ValueError
 
     mask = nm.ones( (n2,), dtype = nm.int32 )
@@ -107,7 +107,7 @@ def fix_double_nodes(coor, ngroups, conns, eps):
         output('trying to fix...')
 
         while cmap.size:
-            print cmap.size
+            print(cmap.size)
 
             # Just like in Variable.equation_mapping()...
             ii = nm.argsort( cmap[:,1] )
@@ -119,10 +119,10 @@ def fix_double_nodes(coor, ngroups, conns, eps):
             eq[eqi] = nm.arange( eqi.shape[0] )
             remap = eq.copy()
             remap[scmap[:,1]] = eq[scmap[:,0]]
-            print coor.shape
+            print(coor.shape)
             coor = coor[eqi]
             ngroups = ngroups[eqi]
-            print coor.shape
+            print(coor.shape)
             ccs = []
             for conn in conns:
                 ccs.append( remap[conn] )
@@ -160,7 +160,7 @@ def get_min_vertex_distance( coor, guess ):
     
     # Get mvd in chunks potentially smaller than guess.
     n_coor = coor.shape[0]
-    print n_coor
+    print(n_coor)
     
     i0 = i1 = 0
     x0 = scoor[i0,0]
@@ -180,7 +180,7 @@ def get_min_vertex_distance( coor, guess ):
 
         if i1 == n_coor - 1: break
 
-    print im, ix[a1], ix[a2], a1, a2, scoor[a1], scoor[a2]
+    print(im, ix[a1], ix[a2], a1, a2, scoor[a1], scoor[a2])
 
     return mvd
         
