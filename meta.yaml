@@ -38,7 +38,7 @@ requirements:
     - matplotlib
     - mock
     - nose
-    - pysegbase
+    # - pysegbase
     - vtk
     - pyqt 4.11.*
 
@@ -48,7 +48,7 @@ requirements:
     - scipy >=0.18.1
     - pyyaml
     - matplotlib
-    - pysegbase
+    #- pysegbase
     - vtk
     - pyqt 4.11.*
 
