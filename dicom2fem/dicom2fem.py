@@ -22,7 +22,9 @@ from PyQt4.QtGui import QApplication, QMainWindow, QWidget,\
      QHBoxLayout, QVBoxLayout, QTabWidget,\
      QLabel, QPushButton, QFrame, QFileDialog,\
      QFont, QInputDialog, QComboBox, QPixmap
-from PyQt4.Qt import QString
+if sys.version_info.major == 2:
+    from PyQt4.Qt import QString
+
 
 try:
     from pysegbase import dcmreaddata as dcmreader
@@ -68,6 +70,16 @@ elem_tab = {
     '2_4': 'quads',
     '3_8': 'hexahedrons'
     }
+
+def getstring(text):
+
+    if sys.version_info.major == 2:
+        textout = QString.fromUtf8(text)
+    elif sys.version_info.major == 3:
+        textout = str(text)
+
+    return textout
+
 
 class MainWindow(QMainWindow):
 
@@ -319,7 +331,7 @@ class MainWindow(QMainWindow):
                       'Developed by:\n' +
                       'University of West Bohemia\n' +
                       'Faculty of Applied Sciences\n' +
-                      QString.fromUtf8('V. Lukeš - 2015') +
+                      getstring('V. Lukeš - 2015') +
                       '\n\nBased on PYSEG_BASE project'
                       )
         info.setFont(font_info)
