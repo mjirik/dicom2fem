@@ -40,7 +40,8 @@ requirements:
     - nose
     # - pysegbase
     - vtk
-    - pyqt 4.11.*
+    # - pyqt 4.11.*
+    - pyqt 4.*.*
 
   run:
     - python
@@ -50,7 +51,7 @@ requirements:
     - matplotlib
     #- pysegbase
     - vtk
-    - pyqt 4.11.*
+    - pyqt 4.*.*
 
 test:
   # Python imports
