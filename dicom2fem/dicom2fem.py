@@ -22,6 +22,7 @@ from PyQt4.QtGui import QApplication, QMainWindow, QWidget,\
      QHBoxLayout, QVBoxLayout, QTabWidget,\
      QLabel, QPushButton, QFrame, QFileDialog,\
      QFont, QInputDialog, QComboBox, QPixmap
+
 if sys.version_info.major == 2:
     from PyQt4.Qt import QString
 
