@@ -40,11 +40,11 @@ except:
     import dcmreaddata as dcmreader
     from seed_editor_qt import QTSeedEditor
 
-from meshio import supported_capabilities, supported_formats, MeshIO
-from seg2fem import gen_mesh_from_voxels, gen_mesh_from_voxels_mc
-from seg2fem import smooth_mesh
+from .meshio import supported_capabilities, supported_formats, MeshIO
+from .seg2fem import gen_mesh_from_voxels, gen_mesh_from_voxels_mc
+from .seg2fem import smooth_mesh
 
-from viewer import QVTKViewer
+from .viewer import QVTKViewer
 
 inv_supported_formats = dict(zip(supported_formats.values(),
                                  supported_formats.keys()))

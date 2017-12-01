@@ -5,8 +5,8 @@ import time
 import numpy as nm
 import scipy.sparse as sp
 
-from base import Struct, get_default, output, assert_
-from meshio import MeshIO
+from .base import Struct, get_default, output, assert_
+from .meshio import MeshIO
 
 ##
 # 28.05.2007, c
