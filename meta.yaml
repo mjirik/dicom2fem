@@ -1,9 +1,9 @@
 package:
   name: dicom2fem
-  version: "1.0.31"
+  version: "1.0.33"
 
 source:
-  git_rev: 1.0.31
+  git_rev: 1.0.33
   git_url: .
 #  fn: imtools-0.0.17.tar.gz
 #  url: https://pypi.python.org/packages/source/i/imtools/imtools-0.0.17.tar.gz
