@@ -6,11 +6,11 @@ from copy import copy
 import os.path as op
 import numpy as nm
 
-from base import (complex_types, dict_from_keys_init,
+from .base import (complex_types, dict_from_keys_init,
                   assert_, is_derived_class,
                   insert_static_method, output, get_default,
                   get_default_attr, Struct, basestr)
-from ioutils \
+from .ioutils \
      import skip_read_line, read_token, read_array, read_list, pt
 
 supported_formats = {
