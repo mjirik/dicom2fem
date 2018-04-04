@@ -6,7 +6,7 @@ import os
 import os.path as op
 import fnmatch
 import shutil
-from base import output, Struct, basestr
+from .base import output, Struct, basestr
 try:
     import tables as pt
 except:

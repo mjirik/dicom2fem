@@ -15,12 +15,12 @@ from optparse import OptionParser
 from scipy.io import loadmat
 import scipy.sparse as sps
 import numpy as nm
+import numpy as np
 from numpy.core import intc
 from numpy.linalg import lapack_lite
 from .mesh import Mesh
 from .marching_cubes import marching_cubes
 from .genfem_base import set_nodemtx, get_snodes_uedges
-import numpy as np
 
 # compatibility
 try:

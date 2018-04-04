@@ -13,6 +13,15 @@ from .base import (complex_types, dict_from_keys_init,
 from .ioutils \
      import skip_read_line, read_token, read_array, read_list, pt
 
+if sys.version_info.major == 2:
+    from string import letters as string_letters
+    from string import maketrans as string_maketrans
+else:
+    from string import ascii_letters as string_letters
+    string_maketrans = str.maketrans
+    # from bytes import maketrans as string_maketrans
+    # from bytearrays import maketrans as string_maketrans
+
 supported_formats = {
     '.mesh' : 'medit',
     '.vtk'  : 'vtk',
@@ -1310,9 +1319,9 @@ class HDF5MeshIO( MeshIO ):
 
     import string
     _all = ''.join( map( chr, range( 256 ) ) )
-    _letters = string.letters + string.digits + '_'
+    _letters = string_letters + string.digits + '_'
     _rubbish = ''.join( [ch for ch in set( _all ) - set( _letters )] )
-    _tr = string.maketrans( _rubbish, '_' * len( _rubbish ) )
+    _tr = string_maketrans( _rubbish, '_' * len( _rubbish ) )
 
     def read( self, mesh, **kwargs ):
         fd = pt.openFile( self.filename, mode = "r" )
@@ -2558,6 +2567,9 @@ def guess_format( filename, ext, formats, io_table ):
 ##
 # c: 05.02.2008, r: 05.02.2008
 var_dict = vars().items()
+if sys.version_info.major == 3:
+    import copy
+    var_dict = list(var_dict)
 io_table = {}
 
 for key, var in var_dict:
