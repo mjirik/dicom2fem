@@ -28,14 +28,14 @@ if sys.version_info.major == 2:
 
 
 try:
-    from pysegbase import dcmreaddata as dcmreader
+    from imcut import dcmreaddata as dcmreader
 
-    from pysegbase.seed_editor_qt import QTSeedEditor
+    from seededitorqt.seed_editor_qt import QTSeedEditor
 except:
     import traceback
     traceback.print_exc()
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                '..', 'pyseg_base', 'pysegbase'))
+                                '..', 'pyseg_base', 'imcut'))
 
     import dcmreaddata as dcmreader
     from seed_editor_qt import QTSeedEditor
@@ -625,7 +625,7 @@ class MainWindow(QMainWindow):
         # this ugly import is necessary due to unresolved pygco dependency 
         # in conda build
         try:
-            from pysegbase import pycut
+            from imcut import pycut
         except:
             import pycut
 
