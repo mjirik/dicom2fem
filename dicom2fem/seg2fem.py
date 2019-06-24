@@ -28,9 +28,13 @@ try:
     factorial = sc.factorial
 
 except AttributeError:
-    import scipy.misc as scm
+    try:
+        import scipy.misc as scm
 
-    factorial = scm.factorial
+        factorial = scm.factorial
+    except AttributeError:
+
+        from scipy.special import factorial
 
 gmsh3d_geo = """
 Mesh.RemeshAlgorithm=1;
