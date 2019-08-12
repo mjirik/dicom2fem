@@ -40,7 +40,7 @@ requirements:
     - nose
     - imcut
     - vtk
-    - pyqt 4.11.*
+      # - pyqt 4.11.*
 
   run:
     - python
@@ -50,7 +50,7 @@ requirements:
     - matplotlib
     - imcut
     - vtk
-    - pyqt 4.11.* # -c menpo
+      #     - pyqt 4.11.* # -c menpo
 
 test:
   # Python imports
