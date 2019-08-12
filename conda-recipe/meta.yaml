@@ -1,9 +1,9 @@
 package:
   name: dicom2fem
-  version: "1.1.10"
+  version: "1.1.11"
 
 source:
-  git_rev: 1.1.10
+  git_rev: 1.1.11
 #  git_url: .
   git_url: https://github.com/mjirik/dicom2fem.git
 #  fn: imtools-0.0.17.tar.gz
