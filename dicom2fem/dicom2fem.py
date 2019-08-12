@@ -18,27 +18,20 @@ import numpy as np
 import sys
 import os
 
-from PyQt4.QtGui import QApplication, QMainWindow, QWidget,\
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget,\
      QHBoxLayout, QVBoxLayout, QTabWidget,\
      QLabel, QPushButton, QFrame, QFileDialog,\
-     QFont, QInputDialog, QComboBox, QPixmap
+     QInputDialog, QComboBox
 
-if sys.version_info.major == 2:
-    from PyQt4.Qt import QString
+from PyQt5.QtGui import QFont, QPixmap
+
+# if sys.version_info.major == 2:
+#     from PyQt4.Qt import QString
 
 
-try:
-    from imcut import dcmreaddata as dcmreader
+# from imcut import dcmreaddata as dcmreader
 
-    from seededitorqt.seed_editor_qt import QTSeedEditor
-except:
-    import traceback
-    traceback.print_exc()
-    sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                '..', 'pyseg_base', 'imcut'))
-
-    import dcmreaddata as dcmreader
-    from seed_editor_qt import QTSeedEditor
+from seededitorqt.seed_editor_qt import QTSeedEditor
 
 from .meshio import supported_capabilities, supported_formats, MeshIO
 from .seg2fem import gen_mesh_from_voxels, gen_mesh_from_voxels_mc
@@ -74,11 +67,12 @@ elem_tab = {
 
 def getstring(text):
 
-    if sys.version_info.major == 2:
-        textout = QString.fromUtf8(text)
-    elif sys.version_info.major == 3:
-        textout = str(text)
+    # if sys.version_info.major == 2:
+    #     textout = QString.fromUtf8(text)
+    # elif sys.version_info.major == 3:
+    #     textout = str(text)
 
+    textout = str(text)
     return textout
 
 
@@ -449,6 +443,7 @@ class MainWindow(QMainWindow):
         self.voxel_volume = np.prod(vxs)
 
     def loadDcmDir(self):
+        from imcut import dcmreaddata as dcmreader
         self.statusBar().showMessage('Reading DICOM directory...')
         QApplication.processEvents()
 
@@ -624,10 +619,7 @@ class MainWindow(QMainWindow):
     def autoSeg(self):
         # this ugly import is necessary due to unresolved pygco dependency 
         # in conda build
-        try:
-            from imcut import pycut
-        except:
-            import pycut
+        from imcut import pycut
 
         if self.dcm_3Ddata is None:
             self.statusBar().showMessage('No DICOM data!')

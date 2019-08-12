@@ -69,8 +69,8 @@ class MyTestCase(unittest.TestCase):
         segmentation = np.zeros([100,121,122])
         segmentation[50:73,50:73,50:73]=1
 
-        # verts, faces, normals, values = skimage.measure.marching_cubes(segmentation, level=1, spacing=voxelsize_mm)
-        verts, faces = skimage.measure.marching_cubes(segmentation, level=0)#, spacing=voxelsize_mm)
+        verts, faces, normals, values = skimage.measure.marching_cubes_lewiner(segmentation, level=0, spacing=voxelsize_mm)
+        # verts, faces = skimage.measure.marching_cubes(segmentation, level=0)#, spacing=voxelsize_mm)
         from mpl_toolkits.mplot3d.art3d import Poly3DCollection
         mesh_data = Poly3DCollection(verts[faces])
         # mesh_data = dicom2fem.seg2fem.gen_mesh_from_voxels_mc(segmentation, voxelsize_mm)
@@ -82,10 +82,10 @@ class MyTestCase(unittest.TestCase):
         #     pass
         #     # mesh_data = gen_mesh_from_voxels_mc(segmentation, voxelsize_mm * 1.0e-2)
         #     # mesh_data.coors +=
-        import vtk.util.numpy_support
-        vtkim = vtk.util.numpy_support.numpy_to_vtk(segmentation)
-        mesh_data.write(op.expanduser("donut.vtk"))
 
+        # import vtk.util.numpy_support
+        # vtkim = vtk.util.numpy_support.numpy_to_vtk(segmentation)
+        mesh_data.write(op.expanduser("donut.vtk"))
 
     def test_mc_skimage_orig_example(self):
         import numpy as np
@@ -95,7 +95,6 @@ class MyTestCase(unittest.TestCase):
         from skimage import measure
         from skimage.draw import ellipsoid
 
-
         # Generate a level set about zero of two identical ellipsoids in 3D
         ellip_base = ellipsoid(6, 10, 16, levelset=True)
         ellip_double = np.concatenate((ellip_base[:-1, ...],
@@ -104,7 +103,8 @@ class MyTestCase(unittest.TestCase):
         # Use marching cubes to obtain the surface mesh of these ellipsoids
         # outs = measure.marching_cubes(ellip_double, 0)
         # verts, faces, normals, values = measure.marching_cubes(ellip_double, 0)
-        verts, faces = measure.marching_cubes(ellip_double, 0)
+        # verts, faces = measure.marching_cubes(ellip_double, 0)
+        verts, faces, normals, values = measure.marching_cubes_lewiner(ellip_double, 0)
 
         # Display resulting triangular mesh using Matplotlib. This can also be done
         # with mayavi (see skimage.measure.marching_cubes docstring).
@@ -126,6 +126,7 @@ class MyTestCase(unittest.TestCase):
 
         plt.tight_layout()
         plt.show()
+
 
 if __name__ == '__main__':
     unittest.main()

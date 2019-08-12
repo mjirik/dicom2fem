@@ -38,7 +38,7 @@ requirements:
     - matplotlib
       # - mock
 #    - nose
-    - imcut
+#    - imcut
     - vtk
       # - pyqt 4.11.*
 
@@ -49,7 +49,7 @@ requirements:
     - scipy >=0.18.1
       #- pyyaml
     - matplotlib
-    - imcut
+#    - imcut
     - vtk
       #     - pyqt 4.11.* # -c menpo
 
