@@ -37,13 +37,14 @@ requirements:
       #    - pyyaml
     - matplotlib
       # - mock
-    - nose
+#    - nose
     - imcut
     - vtk
       # - pyqt 4.11.*
 
   run:
     - python
+    - setuptools
     - numpy
     - scipy >=0.18.1
       #- pyyaml
