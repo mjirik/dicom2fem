@@ -31,7 +31,6 @@ from PyQt5.QtGui import QFont, QPixmap
 
 # from imcut import dcmreaddata as dcmreader
 
-from seededitorqt.seed_editor_qt import QTSeedEditor
 
 from .meshio import supported_capabilities, supported_formats, MeshIO
 from .seg2fem import gen_mesh_from_voxels, gen_mesh_from_voxels_mc
@@ -524,6 +523,7 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage('Cropping DICOM data...')
         QApplication.processEvents()
 
+        from seededitorqt.seed_editor_qt import QTSeedEditor
         pyed = QTSeedEditor(self.dcm_3Ddata, mode='crop',
                             voxelSize=self.voxel_sizemm)
         pyed.exec_()
@@ -609,6 +609,7 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage('Mask region...')
         QApplication.processEvents()
 
+        from seededitorqt.seed_editor_qt import QTSeedEditor
         pyed = QTSeedEditor(self.dcm_3Ddata, mode='mask',
                             voxelSize=self.voxel_sizemm)
 
@@ -628,6 +629,7 @@ class MainWindow(QMainWindow):
         igc = pycut.ImageGraphCut(self.dcm_3Ddata,
                                   voxelsize=self.voxel_sizemm)
 
+        from seededitorqt.seed_editor_qt import QTSeedEditor
         pyed = QTSeedEditor(self.dcm_3Ddata,
                             seeds=self.segmentation_seeds,
                             modeFun=igc.interactivity_loop,
@@ -643,6 +645,7 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage('No DICOM data!')
             return
 
+        from seededitorqt.seed_editor_qt import QTSeedEditor
         pyed = QTSeedEditor(self.dcm_3Ddata,
                             seeds=self.segmentation_data,
                             mode='draw',
