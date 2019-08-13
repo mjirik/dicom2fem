@@ -34,6 +34,15 @@ else:
 def get_debug():
     """
     Utility function providing ``debug()`` function.
+
+    Start debugger on line where it is called, roughly equivalent to::
+
+    import pdb; pdb.set_trace()
+
+    First, this function tries to start an `IPython`-enabled
+    debugger using the `IPython` API.
+
+    When this fails, the plain old `pdb` is used instead.
     """
     try:
         import IPython
@@ -43,6 +52,17 @@ def get_debug():
 
     else:
         old_excepthook = sys.excepthook
+
+        """
+        Start debugger on line where it is called, roughly equivalent to::
+
+            import pdb; pdb.set_trace()
+
+        First, this function tries to start an `IPython`-enabled
+        debugger using the `IPython` API.
+
+        When this fails, the plain old `pdb` is used instead.
+        """
 
         def debug(frame=None):
             if IPython.__version__ >= '0.11':
@@ -81,16 +101,16 @@ def get_debug():
         import pdb
         debug = pdb.set_trace
 
-    debug.__doc__ = """
-    Start debugger on line where it is called, roughly equivalent to::
-
-        import pdb; pdb.set_trace()
-
-    First, this function tries to start an `IPython`-enabled
-    debugger using the `IPython` API.
-
-    When this fails, the plain old `pdb` is used instead.
-    """
+    # debug.__doc__ = """
+    # Start debugger on line where it is called, roughly equivalent to::
+    #
+    #     import pdb; pdb.set_trace()
+    #
+    # First, this function tries to start an `IPython`-enabled
+    # debugger using the `IPython` API.
+    #
+    # When this fails, the plain old `pdb` is used instead.
+    # """
 
     return debug
 
