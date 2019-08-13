@@ -95,7 +95,7 @@ class MyTestCase(unittest.TestCase):
 
         # import vtk.util.numpy_support
         # vtkim = vtk.util.numpy_support.numpy_to_vtk(segmentation)
-        mesh_data.write(op.expanduser("donut.vtk"))
+        # mesh_data.write(op.expanduser("donut.vtk"))
 
     def test_mc_skimage_orig_example(self):
         import numpy as np
@@ -135,8 +135,8 @@ class MyTestCase(unittest.TestCase):
         ax.set_ylim(0, 20)  # b = 10
         ax.set_zlim(0, 32)  # c = 16
 
-        plt.tight_layout()
-        plt.show()
+        # plt.tight_layout()
+        # plt.show()
 
 
 if __name__ == "__main__":
