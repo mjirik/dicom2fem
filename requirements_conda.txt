@@ -2,3 +2,4 @@ numpy
 scipy
 matplotlib
 vtk
+io3d # tests
