@@ -10,51 +10,56 @@ from .meshio import MeshIO
 
 ##
 # 28.05.2007, c
-def make_point_cells( indx, dim ):
-    conn = nm.zeros( (indx.shape[0], dim + 1), dtype = nm.int32 )
-    for ii in range( 0, dim + 1 ):
-        conn[:,ii] = indx
+def make_point_cells(indx, dim):
+    conn = nm.zeros((indx.shape[0], dim + 1), dtype=nm.int32)
+    for ii in range(0, dim + 1):
+        conn[:, ii] = indx
     return conn
+
 
 ##
 # 23.05.2007, updated from matlab version, r: 05.05.2008
-def find_map( x1, x2, eps = 1e-8, allow_double = False, join = True ):
+def find_map(x1, x2, eps=1e-8, allow_double=False, join=True):
     """
     Find a mapping between common coordinates in x1 and x2, such that
     x1[cmap[:,0]] == x2[cmap[:,1]]
     """
     off, dim = x1.shape
-    ir = nm.zeros( (off + x2.shape[0],), dtype = nm.int32 )
+    ir = nm.zeros((off + x2.shape[0],), dtype=nm.int32)
     ir[off:] = off
 
-    x1 = nm.round( x1.T / eps ) * eps
-    x2 = nm.round( x2.T / eps ) * eps
+    x1 = nm.round(x1.T / eps) * eps
+    x2 = nm.round(x2.T / eps) * eps
     xx = nm.c_[x1, x2]
 
-    keys = [xx[ii] for ii in range( dim )]
-    iis = nm.lexsort( keys = keys )
+    keys = [xx[ii] for ii in range(dim)]
+    iis = nm.lexsort(keys=keys)
 
     xs = xx.T[iis]
-##     import scipy.io as io
-##     io.write_array( 'sss1', x1.T )
-##     io.write_array( 'sss2', x2.T )
-##     io.write_array( 'sss', xs, precision = 16 )
-##     pause()
-    xd = nm.sqrt( nm.sum( nm.diff( xs, axis = 0 )**2.0, axis = 1 ) )
+    ##     import scipy.io as io
+    ##     io.write_array( 'sss1', x1.T )
+    ##     io.write_array( 'sss2', x2.T )
+    ##     io.write_array( 'sss', xs, precision = 16 )
+    ##     pause()
+    xd = nm.sqrt(nm.sum(nm.diff(xs, axis=0) ** 2.0, axis=1))
 
-    ii = nm.where( xd < eps )[0]
-    off1, off2 = ir[iis][ii], ir[iis][ii+1]
-    i1, i2 = iis[ii] - off1, iis[ii+1] - off2
-    dns = nm.where( off1 == off2 )[0]
+    ii = nm.where(xd < eps)[0]
+    off1, off2 = ir[iis][ii], ir[iis][ii + 1]
+    i1, i2 = iis[ii] - off1, iis[ii + 1] - off2
+    dns = nm.where(off1 == off2)[0]
     if dns.size:
-        print('double node(s) in:')
+        print("double node(s) in:")
         for dn in dns:
             if off1[dn] == 0:
-                print('x1: %d %d -> %s %s' % (i1[dn], i2[dn],
-                                              x1[:,i1[dn]], x1[:,i2[dn]]))
+                print(
+                    "x1: %d %d -> %s %s"
+                    % (i1[dn], i2[dn], x1[:, i1[dn]], x1[:, i2[dn]])
+                )
             else:
-                print('x2: %d %d -> %s %s' % (i1[dn], i2[dn],
-                                              x2[:,i1[dn]], x2[:,i2[dn]]))
+                print(
+                    "x2: %d %d -> %s %s"
+                    % (i1[dn], i2[dn], x2[:, i1[dn]], x2[:, i2[dn]])
+                )
         if not allow_double:
             raise ValueError
 
@@ -64,34 +69,35 @@ def find_map( x1, x2, eps = 1e-8, allow_double = False, join = True ):
     else:
         return i1, i2
 
-def merge_mesh( x1, ngroups1, conns1, x2, ngroups2, conns2, cmap, eps = 1e-8 ):
+
+def merge_mesh(x1, ngroups1, conns1, x2, ngroups2, conns2, cmap, eps=1e-8):
     """Merge two meshes in common coordinates found in x1, x2."""
     n1 = x1.shape[0]
     n2 = x2.shape[0]
 
-    err = nm.sum( nm.sum( nm.abs( x1[cmap[:,0],:-1] - x2[cmap[:,1],:-1] ) ) )
-    if abs( err ) > (10.0 * eps):
-        print('nonmatching meshes!', err)
+    err = nm.sum(nm.sum(nm.abs(x1[cmap[:, 0], :-1] - x2[cmap[:, 1], :-1])))
+    if abs(err) > (10.0 * eps):
+        print("nonmatching meshes!", err)
         raise ValueError
 
-    mask = nm.ones( (n2,), dtype = nm.int32 )
-    mask[cmap[:,1]] = 0
-#    print mask, nm.cumsum( mask )
-    remap = nm.cumsum( mask ) + n1 - 1
-    remap[cmap[:,1]] = cmap[:,0]
-#    print remap
+    mask = nm.ones((n2,), dtype=nm.int32)
+    mask[cmap[:, 1]] = 0
+    #    print mask, nm.cumsum( mask )
+    remap = nm.cumsum(mask) + n1 - 1
+    remap[cmap[:, 1]] = cmap[:, 0]
+    #    print remap
 
-    i2 = nm.setdiff1d( nm.arange(  n2, dtype = nm.int32 ),
-                       cmap[:,1] )
+    i2 = nm.setdiff1d(nm.arange(n2, dtype=nm.int32), cmap[:, 1])
     xx = nm.r_[x1, x2[i2]]
     ngroups = nm.r_[ngroups1, ngroups2[i2]]
 
     conns = []
-    for ii in xrange( len( conns1 ) ):
-        conn = nm.vstack( (conns1[ii], remap[conns2[ii]]) )
-        conns.append( conn )
-    
+    for ii in xrange(len(conns1)):
+        conn = nm.vstack((conns1[ii], remap[conns2[ii]]))
+        conns.append(conn)
+
     return xx, ngroups, conns
+
 
 def fix_double_nodes(coor, ngroups, conns, eps):
     """
@@ -101,36 +107,36 @@ def fix_double_nodes(coor, ngroups, conns, eps):
     w.r.t. precision given by `eps`.
     """
     n_nod, dim = coor.shape
-    cmap = find_map( coor, nm.zeros( (0,dim) ), eps = eps, allow_double = True )
+    cmap = find_map(coor, nm.zeros((0, dim)), eps=eps, allow_double=True)
     if cmap.size:
-        output('double nodes in input mesh!')
-        output('trying to fix...')
+        output("double nodes in input mesh!")
+        output("trying to fix...")
 
         while cmap.size:
             print(cmap.size)
 
             # Just like in Variable.equation_mapping()...
-            ii = nm.argsort( cmap[:,1] )
+            ii = nm.argsort(cmap[:, 1])
             scmap = cmap[ii]
 
-            eq = nm.arange( n_nod )
-            eq[scmap[:,1]] = -1
+            eq = nm.arange(n_nod)
+            eq[scmap[:, 1]] = -1
             eqi = eq[eq >= 0]
-            eq[eqi] = nm.arange( eqi.shape[0] )
+            eq[eqi] = nm.arange(eqi.shape[0])
             remap = eq.copy()
-            remap[scmap[:,1]] = eq[scmap[:,0]]
+            remap[scmap[:, 1]] = eq[scmap[:, 0]]
             print(coor.shape)
             coor = coor[eqi]
             ngroups = ngroups[eqi]
             print(coor.shape)
             ccs = []
             for conn in conns:
-                ccs.append( remap[conn] )
+                ccs.append(remap[conn])
             conns = ccs
-            cmap = find_map( coor, nm.zeros( (0,dim) ), eps = eps,
-                            allow_double = True )
-        output('...done')
+            cmap = find_map(coor, nm.zeros((0, dim)), eps=eps, allow_double=True)
+        output("...done")
     return coor, ngroups, conns
+
 
 def get_min_edge_size(coor, conns):
     """
@@ -139,79 +145,85 @@ def get_min_edge_size(coor, conns):
     mes = 1e16
     for conn in conns:
         n_ep = conn.shape[1]
-        for ir in range( n_ep ):
-            x1 = coor[conn[:,ir]]
-            for ic in range( ir + 1, n_ep ):
-                x2 = coor[conn[:,ic]]
-                aux = nm.sqrt( nm.sum( (x2 - x1)**2.0, axis = 1 ).min() )
-                mes = min( mes, aux )
+        for ir in range(n_ep):
+            x1 = coor[conn[:, ir]]
+            for ic in range(ir + 1, n_ep):
+                x2 = coor[conn[:, ic]]
+                aux = nm.sqrt(nm.sum((x2 - x1) ** 2.0, axis=1).min())
+                mes = min(mes, aux)
 
     return mes
 
+
 ##
 # 25.05.2007, c
-def get_min_vertex_distance( coor, guess ):
+def get_min_vertex_distance(coor, guess):
     """Can miss the minimum, but is enough for our purposes."""
     # Sort by x.
-    ix = nm.argsort( coor[:,0] )
+    ix = nm.argsort(coor[:, 0])
     scoor = coor[ix]
 
     mvd = 1e16
-    
+
     # Get mvd in chunks potentially smaller than guess.
     n_coor = coor.shape[0]
     print(n_coor)
-    
+
     i0 = i1 = 0
-    x0 = scoor[i0,0]
+    x0 = scoor[i0, 0]
     while 1:
-        while ((scoor[i1,0] - x0) < guess) and (i1 < (n_coor - 1)):
+        while ((scoor[i1, 0] - x0) < guess) and (i1 < (n_coor - 1)):
             i1 += 1
 
-#        print i0, i1, x0, scoor[i1,0]
-        aim, aa1, aa2, aux = get_min_vertex_distance_naive( scoor[i0:i1+1] )
+        #        print i0, i1, x0, scoor[i1,0]
+        aim, aa1, aa2, aux = get_min_vertex_distance_naive(scoor[i0 : i1 + 1])
         if aux < mvd:
             im, a1, a2 = aim, aa1 + i0, aa2 + i0
-        mvd = min( mvd, aux )
-        i0 = i1 = int( 0.5 * (i1 + i0 ) ) + 1
-#        i0 += 1
-        x0 = scoor[i0,0]
-#        print '-', i0
+        mvd = min(mvd, aux)
+        i0 = i1 = int(0.5 * (i1 + i0)) + 1
+        #        i0 += 1
+        x0 = scoor[i0, 0]
+        #        print '-', i0
 
-        if i1 == n_coor - 1: break
+        if i1 == n_coor - 1:
+            break
 
     print(im, ix[a1], ix[a2], a1, a2, scoor[a1], scoor[a2])
 
     return mvd
-        
+
+
 ##
 # c: 25.05.2007, r: 05.05.2008
-def get_min_vertex_distance_naive( coor ):
+def get_min_vertex_distance_naive(coor):
 
-    ii = nm.arange( coor.shape[0] )
-    i1, i2 = nm.meshgrid( ii, ii )
+    ii = nm.arange(coor.shape[0])
+    i1, i2 = nm.meshgrid(ii, ii)
     i1 = i1.flatten()
     i2 = i2.flatten()
 
-    ii = nm.where( i1 < i2 )
+    ii = nm.where(i1 < i2)
     aux = coor[i1[ii]] - coor[i2[ii]]
-    aux = nm.sum( aux**2.0, axis = 1 )
+    aux = nm.sum(aux ** 2.0, axis=1)
 
     im = aux.argmin()
 
-    return im, i1[ii][im], i2[ii][im], nm.sqrt( aux[im] )
+    return im, i1[ii][im], i2[ii][im], nm.sqrt(aux[im])
 
-def make_mesh( coor, ngroups, conns, mesh_in ):
+
+def make_mesh(coor, ngroups, conns, mesh_in):
     """Create a mesh reusing mat_ids and descs of mesh_in."""
     mat_ids = []
-    for ii, conn in enumerate( conns ):
-        mat_id = nm.empty( (conn.shape[0],), dtype = nm.int32 )
-        mat_id.fill( mesh_in.mat_ids[ii][0] )
-        mat_ids.append( mat_id )
-        
-    mesh_out = Mesh.from_data( 'merged mesh', coor, ngroups, conns,
-                               mat_ids, mesh_in.descs )
+    for ii, conn in enumerate(conns):
+        mat_id = nm.empty((conn.shape[0],), dtype=nm.int32)
+        mat_id.fill(mesh_in.mat_ids[ii][0])
+        mat_ids.append(mat_id)
+
+    mesh_out = Mesh.from_data(
+        "merged mesh", coor, ngroups, conns, mat_ids, mesh_in.descs
+    )
     return mesh_out
+
 
 def make_inverse_connectivity(conns, n_nod, ret_offsets=True):
     """
@@ -220,10 +232,10 @@ def make_inverse_connectivity(conns, n_nod, ret_offsets=True):
     """
     from itertools import chain
 
-    iconn = [[] for ii in xrange( n_nod )]
+    iconn = [[] for ii in xrange(n_nod)]
     n_els = [0] * n_nod
-    for ig, conn in enumerate( conns ):
-        for iel, row in enumerate( conn ):
+    for ig, conn in enumerate(conns):
+        for iel, row in enumerate(conn):
             for node in row:
                 iconn[node].extend([ig, iel])
                 n_els[node] += 1
@@ -238,11 +250,12 @@ def make_inverse_connectivity(conns, n_nod, ret_offsets=True):
     else:
         return n_els, iconn
 
+
 ##
 # Mesh.
 # 13.12.2004, c
 # 02.01.2005
-class Mesh( Struct ):
+class Mesh(Struct):
     """
     Contains the FEM mesh together with all utilities related to it.
 
@@ -360,48 +373,48 @@ class Mesh( Struct ):
 
     """
 
-    def from_surface( surf_faces, mesh_in ):
+    def from_surface(surf_faces, mesh_in):
         """
         Create a mesh given a set of surface faces and the original mesh.
         """
         aux = nm.concatenate([faces.ravel() for faces in surf_faces])
         inod = nm.unique(aux)
 
-        n_nod = len( inod )
+        n_nod = len(inod)
         n_nod_m, dim = mesh_in.coors.shape
 
-        aux = nm.arange( n_nod, dtype=nm.int32 )
-        remap = nm.zeros( (n_nod_m,), nm.int32 )
+        aux = nm.arange(n_nod, dtype=nm.int32)
+        remap = nm.zeros((n_nod_m,), nm.int32)
         remap[inod] = aux
 
-        mesh = Mesh( mesh_in.name + "_surf" )
+        mesh = Mesh(mesh_in.name + "_surf")
 
         mesh.coors = mesh_in.coors[inod]
         mesh.ngroups = mesh_in.ngroups[inod]
 
-        sfm = {3 : "2_3", 4 : "2_4"}
+        sfm = {3: "2_3", 4: "2_4"}
         mesh.conns = []
         mesh.descs = []
         mesh.mat_ids = []
-        for ii, sf in enumerate( surf_faces ):
+        for ii, sf in enumerate(surf_faces):
             n_el, n_fp = sf.shape
 
             conn = remap[sf]
-            mat_id = nm.empty( (conn.shape[0],), dtype = nm.int32 )
-            mat_id.fill( ii )
+            mat_id = nm.empty((conn.shape[0],), dtype=nm.int32)
+            mat_id.fill(ii)
 
-            mesh.descs.append( sfm[n_fp] )
-            mesh.conns.append( conn )
-            mesh.mat_ids.append( mat_id )
+            mesh.descs.append(sfm[n_fp])
+            mesh.conns.append(conn)
+            mesh.mat_ids.append(mat_id)
 
         mesh._set_shape_info()
-        
+
         return mesh
-    from_surface = staticmethod( from_surface )
+
+    from_surface = staticmethod(from_surface)
 
     @staticmethod
-    def from_file(filename=None, io='auto', prefix_dir=None,
-                  omit_facets=False):
+    def from_file(filename=None, io="auto", prefix_dir=None, omit_facets=False):
         """
         Read a mesh from a file.
 
@@ -423,33 +436,39 @@ class Mesh( Struct ):
         if isinstance(filename, Mesh):
             return filename
 
-        if io == 'auto':
+        if io == "auto":
             if filename is None:
-                output( 'filename or io must be specified!' )
+                output("filename or io must be specified!")
                 raise ValueError
             else:
                 io = MeshIO.any_from_filename(filename, prefix_dir=prefix_dir)
 
-        output('reading mesh (%s)...' % (io.filename))
+        output("reading mesh (%s)..." % (io.filename))
         tt = time.clock()
 
         trunk = io.get_filename_trunk()
         mesh = Mesh(trunk)
         mesh = io.read(mesh, omit_facets=omit_facets)
 
-        output('...done in %.2f s' % (time.clock() - tt))
+        output("...done in %.2f s" % (time.clock() - tt))
 
         mesh._set_shape_info()
 
         return mesh
 
     @staticmethod
-    def from_region(region, mesh_in, save_edges=False, save_faces=False,
-                    localize=False, is_surface=False):
+    def from_region(
+        region,
+        mesh_in,
+        save_edges=False,
+        save_faces=False,
+        localize=False,
+        is_surface=False,
+    ):
         """
         Create a mesh corresponding to a given region.
         """
-        mesh = Mesh( mesh_in.name + "_reg" )
+        mesh = Mesh(mesh_in.name + "_reg")
         mesh.coors = mesh_in.coors.copy()
         mesh.ngroups = mesh_in.ngroups.copy()
 
@@ -460,27 +479,26 @@ class Mesh( Struct ):
         if not is_surface:
             if region.has_cells():
                 for ig in region.igs:
-                    mesh.descs.append( mesh_in.descs[ig] )
-                    els = region.get_cells( ig )
-                    mesh.mat_ids.append( mesh_in.mat_ids[ig][els,:].copy() )
-                    mesh.conns.append( mesh_in.conns[ig][els,:].copy() )
+                    mesh.descs.append(mesh_in.descs[ig])
+                    els = region.get_cells(ig)
+                    mesh.mat_ids.append(mesh_in.mat_ids[ig][els, :].copy())
+                    mesh.conns.append(mesh_in.conns[ig][els, :].copy())
 
             if save_edges:
                 ed = region.domain.ed
                 for ig in region.igs:
-                    edges = region.get_edges( ig )
-                    mesh.descs.append( '1_2' )
-                    mesh.mat_ids.append( ed.data[edges,0] + 1 )
-                    mesh.conns.append( ed.data[edges,-2:].copy() )
+                    edges = region.get_edges(ig)
+                    mesh.descs.append("1_2")
+                    mesh.mat_ids.append(ed.data[edges, 0] + 1)
+                    mesh.conns.append(ed.data[edges, -2:].copy())
 
             if save_faces:
                 mesh._append_region_faces(region)
 
             if save_edges or save_faces:
-                mesh.descs.append( {2 : '2_3', 3 : '3_4'}[mesh_in.dim] )
-                mesh.mat_ids.append( -nm.ones_like( region.all_vertices ) )
-                mesh.conns.append(make_point_cells(region.all_vertices,
-                                                   mesh_in.dim))
+                mesh.descs.append({2: "2_3", 3: "3_4"}[mesh_in.dim])
+                mesh.mat_ids.append(-nm.ones_like(region.all_vertices))
+                mesh.conns.append(make_point_cells(region.all_vertices, mesh_in.dim))
 
         else:
             mesh._append_region_faces(region, force_faces=True)
@@ -488,29 +506,30 @@ class Mesh( Struct ):
         mesh._set_shape_info()
 
         if localize:
-            mesh.localize( region.all_vertices )
+            mesh.localize(region.all_vertices)
 
         return mesh
 
-    def from_data( name, coors, ngroups, conns, mat_ids, descs, igs = None ):
+    def from_data(name, coors, ngroups, conns, mat_ids, descs, igs=None):
         """
         Create a mesh from mesh data.
         """
         if igs is None:
-            igs = range( len( conns ) )
+            igs = range(len(conns))
         mesh = Mesh(name)
-        mesh._set_data(coors = coors,
-                       ngroups = ngroups,
-                       conns = [conns[ig] for ig in igs],
-                       mat_ids = [mat_ids[ig] for ig in igs],
-                       descs = [descs[ig] for ig in igs])
+        mesh._set_data(
+            coors=coors,
+            ngroups=ngroups,
+            conns=[conns[ig] for ig in igs],
+            mat_ids=[mat_ids[ig] for ig in igs],
+            descs=[descs[ig] for ig in igs],
+        )
         mesh._set_shape_info()
         return mesh
-    from_data = staticmethod( from_data )
-        
 
-    def __init__(self, name='mesh', filename=None,
-                 prefix_dir=None, **kwargs):
+    from_data = staticmethod(from_data)
+
+    def __init__(self, name="mesh", filename=None, prefix_dir=None, **kwargs):
         """Create a Mesh.
 
         Parameters
@@ -530,12 +549,12 @@ class Mesh( Struct ):
 
         else:
             io = MeshIO.any_from_filename(filename, prefix_dir=prefix_dir)
-            output( 'reading mesh (%s)...' % (io.filename) )
+            output("reading mesh (%s)..." % (io.filename))
             tt = time.clock()
             io.read(self)
-            output( '...done in %.2f s' % (time.clock() - tt) )
+            output("...done in %.2f s" % (time.clock() - tt))
             self._set_shape_info()
-            
+
     def copy(self, name=None):
         """Make a deep copy of self.
 
@@ -549,12 +568,12 @@ class Mesh( Struct ):
     ##
     # 04.08.2006, c
     # 29.09.2006
-    def _set_shape_info( self ):
+    def _set_shape_info(self):
         self.n_nod, self.dim = self.coors.shape
-        self.n_els = nm.array( [conn.shape[0] for conn in self.conns] )
-        self.n_e_ps = nm.array( [conn.shape[1] for conn in self.conns] )
-        self.el_offsets = nm.cumsum( nm.r_[0, self.n_els] )
-        self.n_el = nm.sum( self.n_els )
+        self.n_els = nm.array([conn.shape[0] for conn in self.conns])
+        self.n_e_ps = nm.array([conn.shape[1] for conn in self.conns])
+        self.el_offsets = nm.cumsum(nm.r_[0, self.n_els])
+        self.n_el = nm.sum(self.n_els)
         self.dims = [int(ii[0]) for ii in self.descs]
 
     def _set_data(self, coors, ngroups, conns, mat_ids, descs, nodal_bcs=None):
@@ -586,8 +605,7 @@ class Mesh( Struct ):
             self.ngroups = nm.ascontiguousarray(ngroups)
 
         self.conns = [nm.asarray(conn, dtype=nm.int32) for conn in conns]
-        self.mat_ids = [nm.asarray(mat_id, dtype=nm.int32)
-                        for mat_id in mat_ids]
+        self.mat_ids = [nm.asarray(mat_id, dtype=nm.int32) for mat_id in mat_ids]
         self.descs = descs
         self.nodal_bcs = get_default(nodal_bcs, {})
 
@@ -600,21 +618,30 @@ class Mesh( Struct ):
             faces = region.get_surface_entities(ig)
             fdata = fa.facets[faces]
 
-            i3 = nm.where(fdata[:,-1] == -1)[0]
-            i4 = nm.where(fdata[:,-1] != -1)[0]
+            i3 = nm.where(fdata[:, -1] == -1)[0]
+            i4 = nm.where(fdata[:, -1] != -1)[0]
 
             if i3.size:
-                self.descs.append('2_3')
-                self.mat_ids.append(fa.indices[i3,0] + 1)
-                self.conns.append(fdata[i3,:-1])
+                self.descs.append("2_3")
+                self.mat_ids.append(fa.indices[i3, 0] + 1)
+                self.conns.append(fdata[i3, :-1])
 
             if i4.size:
-                self.descs.append('2_4')
-                self.mat_ids.append(fa.indices[i4,0] + 1)
+                self.descs.append("2_4")
+                self.mat_ids.append(fa.indices[i4, 0] + 1)
                 self.conns.append(fdata[i4])
 
-    def write(self, filename=None, io=None,
-              coors=None, igs=None, out=None, float_format=None, lc_all="C", **kwargs):
+    def write(
+        self,
+        filename=None,
+        io=None,
+        coors=None,
+        igs=None,
+        out=None,
+        float_format=None,
+        lc_all="C",
+        **kwargs
+    ):
         """
         Write mesh + optional results in `out` to a file.
 
@@ -641,35 +668,36 @@ class Mesh( Struct ):
             Additional arguments that can be passed to the `MeshIO` instance.
         """
         if filename is None:
-            filename = self.name + '.mesh'
+            filename = self.name + ".mesh"
 
         if io is None:
             io = self.io
             if io is None:
-                io = 'auto'
+                io = "auto"
 
-
-        if io == 'auto':
-            io = MeshIO.any_from_filename( filename )
+        if io == "auto":
+            io = MeshIO.any_from_filename(filename)
 
         if coors is None:
             coors = self.coors
 
         if igs is None:
-            igs = range( len( self.conns ) )
+            igs = range(len(self.conns))
 
-        aux_mesh = Mesh.from_data( self.name, coors, self.ngroups,
-                                   self.conns, self.mat_ids, self.descs, igs )
+        aux_mesh = Mesh.from_data(
+            self.name, coors, self.ngroups, self.conns, self.mat_ids, self.descs, igs
+        )
         if lc_all is not None:
             import locale
+
             locale.setlocale(locale.LC_ALL, lc_all)
-        io.set_float_format( float_format )
-        io.write( filename, aux_mesh, out, **kwargs )
+        io.set_float_format(float_format)
+        io.write(filename, aux_mesh, out, **kwargs)
 
     ##
     # 23.05.2007, c
-    def get_bounding_box( self ):
-        return nm.vstack( (nm.amin( self.coors, 0 ), nm.amax( self.coors, 0 )) )
+    def get_bounding_box(self):
+        return nm.vstack((nm.amin(self.coors, 0), nm.amax(self.coors, 0)))
 
     def get_element_coors(self, ig=None):
         """
@@ -694,7 +722,7 @@ class Mesh( Struct ):
         coors = nm.empty((self.n_el, n_ep_max, self.dim), dtype=cc.dtype)
         for ig, conn in enumerate(self.conns):
             i1, i2 = self.el_offsets[ig], self.el_offsets[ig + 1]
-            coors[i1:i2, :conn.shape[1], :] = cc[conn]
+            coors[i1:i2, : conn.shape[1], :] = cc[conn]
 
         return coors
 
@@ -745,7 +773,7 @@ class Mesh( Struct ):
             ref_coors = self.coors
 
         if mtx_t.shape[1] > self.coors.shape[1]:
-            self.coors[:] = nm.dot(ref_coors, mtx_t[:,:-1].T) + mtx_t[:,-1]
+            self.coors[:] = nm.dot(ref_coors, mtx_t[:, :-1].T) + mtx_t[:, -1]
         else:
             self.coors[:] = nm.dot(ref_coors, mtx_t.T)
 
@@ -846,16 +874,16 @@ class Mesh( Struct ):
         coors = nm.concatenate(coors, axis=0)
         ngroups = nm.concatenate(ngroups, axis=0)
 
-        mesh = Mesh.from_data('exploded_' + self.name,
-                              coors, ngroups, conns, mat_ids, descs)
+        mesh = Mesh.from_data(
+            "exploded_" + self.name, coors, ngroups, conns, mat_ids, descs
+        )
 
         if return_emap:
             rows = nm.concatenate(rows)
             cols = nm.concatenate(cols)
             data = nm.ones(rows.shape[0], dtype=nm.float64)
 
-            emap = sp.coo_matrix((data, (rows, cols)),
-                                 shape=(mesh.n_nod, self.n_nod))
+            emap = sp.coo_matrix((data, (rows, cols)), shape=(mesh.n_nod, self.n_nod))
 
             return mesh, emap
 

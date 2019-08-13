@@ -9,6 +9,7 @@ $ seg2fem.py -f brain_seg.mat
 """
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from optparse import OptionParser
@@ -25,6 +26,7 @@ from .genfem_base import set_nodemtx, get_snodes_uedges
 # compatibility
 try:
     import scipy as sc
+
     factorial = sc.factorial
 
 except AttributeError:
@@ -48,39 +50,51 @@ Volume(200)={102};
 Physical Volume(201)={200};
 """
 
+
 def output(msg):
     print(msg)
+
 
 def elems_q2t(el):
 
     nel, nnd = el.shape
     if nnd > 4:
-        q2t = nm.array([[0, 2, 3, 6],
-                        [0, 3, 7, 6],
-                        [0, 7, 4, 6],
-                        [0, 5, 6, 4],
-                        [1, 5, 6, 0],
-                        [1, 6, 2, 0]])
+        q2t = nm.array(
+            [
+                [0, 2, 3, 6],
+                [0, 3, 7, 6],
+                [0, 7, 4, 6],
+                [0, 5, 6, 4],
+                [1, 5, 6, 0],
+                [1, 6, 2, 0],
+            ]
+        )
 
     else:
-        q2t = nm.array([[0, 1, 2],
-                        [0, 2, 3]])
+        q2t = nm.array([[0, 1, 2], [0, 2, 3]])
 
     ns, nn = q2t.shape
     nel *= ns
 
-    out = nm.zeros((nel, nn), dtype=nm.int32);
+    out = nm.zeros((nel, nn), dtype=nm.int32)
 
     for ii in range(ns):
         idxs = nm.arange(ii, nel, ns)
 
-        out[idxs,:] = el[:, q2t[ii,:]]
+        out[idxs, :] = el[:, q2t[ii, :]]
 
     return nm.ascontiguousarray(out)
 
-def smooth_mesh(mesh, n_iter=4, lam=0.6307, mu=-0.6347,
-                weights=None, bconstr=True,
-                volume_corr=False):
+
+def smooth_mesh(
+    mesh,
+    n_iter=4,
+    lam=0.6307,
+    mu=-0.6347,
+    weights=None,
+    bconstr=True,
+    volume_corr=False,
+):
     """
     FE mesh smoothing.
 
@@ -144,7 +158,7 @@ def smooth_mesh(mesh, n_iter=4, lam=0.6307, mu=-0.6347,
         for i in xrange(m):
             tmp = a[i]
             lapack_routine(n, n, tmp, n, pivots[i], 0)
-        sign = 1. - 2. * (nm.add.reduce(pivots != flags, axis=1) % 2)
+        sign = 1.0 - 2.0 * (nm.add.reduce(pivots != flags, axis=1) % 2)
         idx = nm.arange(n)
         d = a[:, idx, idx]
         absd = nm.absolute(d)
@@ -159,8 +173,8 @@ def smooth_mesh(mesh, n_iter=4, lam=0.6307, mu=-0.6347,
         dim = nd.shape[1]
         nnd = el.shape[1]
 
-        etype = '%d_%d' % (dim, nnd)
-        if etype == '2_4' or etype == '3_8':
+        etype = "%d_%d" % (dim, nnd)
+        if etype == "2_4" or etype == "3_8":
             el = elems_q2t(el)
 
         nel = el.shape[0]
@@ -170,15 +184,14 @@ def smooth_mesh(mesh, n_iter=4, lam=0.6307, mu=-0.6347,
             mul *= -1.0
 
         mtx = nm.ones((nel, dim + 1, dim + 1), dtype=nm.double)
-        mtx[:,:,:-1] = nd[el,:]
-        vols = mul * dets_fast(mtx.copy()) # copy() ???
+        mtx[:, :, :-1] = nd[el, :]
+        vols = mul * dets_fast(mtx.copy())  # copy() ???
         vol = vols.sum()
-        bc = nm.dot(vols, mtx.sum(1)[:,:-1] / nnd)
+        bc = nm.dot(vols, mtx.sum(1)[:, :-1] / nnd)
 
         bc /= vol
 
         return vol, bc
-
 
     n_nod = mesh.n_nod
 
@@ -191,8 +204,8 @@ def smooth_mesh(mesh, n_iter=4, lam=0.6307, mu=-0.6347,
             node_group[sndi] = 4
 
         # generate costs matrix
-        end1 = edges[:,0]
-        end2 = edges[:,1]
+        end1 = edges[:, 0]
+        end2 = edges[:, 1]
         idxs = nm.where(node_group[end2] >= node_group[end1])
         rows1 = end1[idxs]
         cols1 = end2[idxs]
@@ -201,18 +214,19 @@ def smooth_mesh(mesh, n_iter=4, lam=0.6307, mu=-0.6347,
         cols2 = end1[idxs]
         crows = nm.concatenate((rows1, rows2))
         ccols = nm.concatenate((cols1, cols2))
-        costs = sps.coo_matrix((nm.ones_like(crows), (crows, ccols)),
-                               shape=(n_nod, n_nod),
-                               dtype=nm.double)
+        costs = sps.coo_matrix(
+            (nm.ones_like(crows), (crows, ccols)), shape=(n_nod, n_nod), dtype=nm.double
+        )
 
         # generate weights matrix
         idxs = range(n_nod)
-        aux = sps.coo_matrix((1.0 / nm.asarray(costs.sum(1)).squeeze(),
-                              (idxs, idxs)),
-                             shape=(n_nod, n_nod),
-                             dtype=nm.double)
+        aux = sps.coo_matrix(
+            (1.0 / nm.asarray(costs.sum(1)).squeeze(), (idxs, idxs)),
+            shape=(n_nod, n_nod),
+            dtype=nm.double,
+        )
 
-        #aux.setdiag(1.0 / costs.sum(1))
+        # aux.setdiag(1.0 / costs.sum(1))
         weights = (aux.tocsc() * costs.tocsc()).tocsr()
 
     coors = taubin(mesh.coors, weights, lam, mu, n_iter)
@@ -226,7 +240,8 @@ def smooth_mesh(mesh, n_iter=4, lam=0.6307, mu=-0.6347,
 
     return coors
 
-def gen_mesh_from_voxels(voxels, dims, etype='q', mtype='v'):
+
+def gen_mesh_from_voxels(voxels, dims, etype="q", mtype="v"):
     """
     Generate FE mesh from voxels (volumetric data).
 
@@ -258,7 +273,7 @@ def gen_mesh_from_voxels(voxels, dims, etype='q', mtype='v'):
     set_nodemtx(nodemtx, vxidxs, etype)
 
     ndidx = nm.where(nodemtx)
-    del(nodemtx)
+    del nodemtx
 
     coors = nm.array(ndidx).transpose() * dims
     nnod = coors.shape[0]
@@ -266,7 +281,7 @@ def gen_mesh_from_voxels(voxels, dims, etype='q', mtype='v'):
     nodeid = -nm.ones(nddims, dtype=nm.int32)
     nodeid[ndidx] = nm.arange(nnod)
 
-    if mtype == 's':
+    if mtype == "s":
         felems = []
         nn = nm.zeros(nddims, dtype=nm.int8)
 
@@ -274,34 +289,38 @@ def gen_mesh_from_voxels(voxels, dims, etype='q', mtype='v'):
     if dim == 2:
         ix, iy = vxidxs
 
-        if mtype == 'v':
-            elems = nm.array([nodeid[ix,iy],
-                              nodeid[ix + 1,iy],
-                              nodeid[ix + 1,iy + 1],
-                              nodeid[ix,iy + 1]]).transpose()
+        if mtype == "v":
+            elems = nm.array(
+                [
+                    nodeid[ix, iy],
+                    nodeid[ix + 1, iy],
+                    nodeid[ix + 1, iy + 1],
+                    nodeid[ix, iy + 1],
+                ]
+            ).transpose()
             edim = 2
 
         else:
             fc = nm.zeros(nddims + (2,), dtype=nm.int32)
             # x
-            fc[ix,iy,:] = nm.array([nodeid[ix,iy + 1],
-                                    nodeid[ix,iy]]).transpose()
-            fc[ix + 1,iy,:] = nm.array([nodeid[ix + 1,iy],
-                                        nodeid[ix + 1,iy + 1]]).transpose()
-            nn[ix,iy] = 1
-            nn[ix + 1,iy] += 1
+            fc[ix, iy, :] = nm.array([nodeid[ix, iy + 1], nodeid[ix, iy]]).transpose()
+            fc[ix + 1, iy, :] = nm.array(
+                [nodeid[ix + 1, iy], nodeid[ix + 1, iy + 1]]
+            ).transpose()
+            nn[ix, iy] = 1
+            nn[ix + 1, iy] += 1
 
             idx = nm.where(nn == 1)
             felems.append(fc[idx])
             # y
             fc.fill(0)
             nn.fill(0)
-            fc[ix,iy,:] = nm.array([nodeid[ix,iy],
-                                    nodeid[ix + 1,iy]]).transpose()
-            fc[ix,iy + 1,:] = nm.array([nodeid[ix + 1,iy + 1],
-                                        nodeid[ix,iy + 1]]).transpose()
-            nn[ix,iy] = 1
-            nn[ix,iy + 1] += 1
+            fc[ix, iy, :] = nm.array([nodeid[ix, iy], nodeid[ix + 1, iy]]).transpose()
+            fc[ix, iy + 1, :] = nm.array(
+                [nodeid[ix + 1, iy + 1], nodeid[ix, iy + 1]]
+            ).transpose()
+            nn[ix, iy] = 1
+            nn[ix, iy + 1] += 1
 
             idx = nm.where(nn == 1)
             felems.append(fc[idx])
@@ -313,31 +332,43 @@ def gen_mesh_from_voxels(voxels, dims, etype='q', mtype='v'):
     elif dim == 3:
         ix, iy, iz = vxidxs
 
-        if mtype == 'v':
-            elems = nm.array([nodeid[ix,iy,iz],
-                              nodeid[ix + 1,iy,iz],
-                              nodeid[ix + 1,iy + 1,iz],
-                              nodeid[ix,iy + 1,iz],
-                              nodeid[ix,iy,iz + 1],
-                              nodeid[ix + 1,iy,iz + 1],
-                              nodeid[ix + 1,iy + 1,iz + 1],
-                              nodeid[ix,iy + 1,iz + 1]]).transpose()
+        if mtype == "v":
+            elems = nm.array(
+                [
+                    nodeid[ix, iy, iz],
+                    nodeid[ix + 1, iy, iz],
+                    nodeid[ix + 1, iy + 1, iz],
+                    nodeid[ix, iy + 1, iz],
+                    nodeid[ix, iy, iz + 1],
+                    nodeid[ix + 1, iy, iz + 1],
+                    nodeid[ix + 1, iy + 1, iz + 1],
+                    nodeid[ix, iy + 1, iz + 1],
+                ]
+            ).transpose()
             edim = 3
 
         else:
             fc = nm.zeros(tuple(nddims) + (4,), dtype=nm.int32)
 
             # x
-            fc[ix,iy,iz,:] = nm.array([nodeid[ix,iy,iz],
-                                       nodeid[ix,iy,iz + 1],
-                                       nodeid[ix,iy + 1,iz + 1],
-                                       nodeid[ix,iy + 1,iz]]).transpose()
-            fc[ix + 1,iy,iz,:] = nm.array([nodeid[ix + 1,iy,iz],
-                                           nodeid[ix + 1,iy + 1,iz],
-                                           nodeid[ix + 1,iy + 1,iz + 1],
-                                           nodeid[ix + 1,iy,iz + 1]]).transpose()
-            nn[ix,iy,iz] = 1
-            nn[ix + 1,iy,iz] += 1
+            fc[ix, iy, iz, :] = nm.array(
+                [
+                    nodeid[ix, iy, iz],
+                    nodeid[ix, iy, iz + 1],
+                    nodeid[ix, iy + 1, iz + 1],
+                    nodeid[ix, iy + 1, iz],
+                ]
+            ).transpose()
+            fc[ix + 1, iy, iz, :] = nm.array(
+                [
+                    nodeid[ix + 1, iy, iz],
+                    nodeid[ix + 1, iy + 1, iz],
+                    nodeid[ix + 1, iy + 1, iz + 1],
+                    nodeid[ix + 1, iy, iz + 1],
+                ]
+            ).transpose()
+            nn[ix, iy, iz] = 1
+            nn[ix + 1, iy, iz] += 1
 
             idx = nm.where(nn == 1)
             felems.append(fc[idx])
@@ -345,16 +376,24 @@ def gen_mesh_from_voxels(voxels, dims, etype='q', mtype='v'):
             # y
             fc.fill(0)
             nn.fill(0)
-            fc[ix,iy,iz,:] = nm.array([nodeid[ix,iy,iz],
-                                       nodeid[ix + 1,iy,iz],
-                                       nodeid[ix + 1,iy,iz + 1],
-                                       nodeid[ix,iy,iz + 1]]).transpose()
-            fc[ix,iy + 1,iz,:] = nm.array([nodeid[ix,iy + 1,iz],
-                                           nodeid[ix,iy + 1,iz + 1],
-                                           nodeid[ix + 1,iy + 1,iz + 1],
-                                           nodeid[ix + 1,iy + 1,iz]]).transpose()
-            nn[ix,iy,iz] = 1
-            nn[ix,iy + 1,iz] += 1
+            fc[ix, iy, iz, :] = nm.array(
+                [
+                    nodeid[ix, iy, iz],
+                    nodeid[ix + 1, iy, iz],
+                    nodeid[ix + 1, iy, iz + 1],
+                    nodeid[ix, iy, iz + 1],
+                ]
+            ).transpose()
+            fc[ix, iy + 1, iz, :] = nm.array(
+                [
+                    nodeid[ix, iy + 1, iz],
+                    nodeid[ix, iy + 1, iz + 1],
+                    nodeid[ix + 1, iy + 1, iz + 1],
+                    nodeid[ix + 1, iy + 1, iz],
+                ]
+            ).transpose()
+            nn[ix, iy, iz] = 1
+            nn[ix, iy + 1, iz] += 1
 
             idx = nm.where(nn == 1)
             felems.append(fc[idx])
@@ -362,16 +401,24 @@ def gen_mesh_from_voxels(voxels, dims, etype='q', mtype='v'):
             # z
             fc.fill(0)
             nn.fill(0)
-            fc[ix,iy,iz,:] = nm.array([nodeid[ix,iy,iz],
-                                       nodeid[ix,iy + 1,iz],
-                                       nodeid[ix + 1,iy + 1,iz],
-                                       nodeid[ix + 1,iy,iz]]).transpose()
-            fc[ix,iy,iz + 1,:] = nm.array([nodeid[ix,iy,iz + 1],
-                                           nodeid[ix + 1,iy,iz + 1],\
-                                           nodeid[ix + 1,iy + 1,iz + 1],
-                                           nodeid[ix,iy + 1,iz + 1]]).transpose()
-            nn[ix,iy,iz] = 1
-            nn[ix,iy,iz + 1] += 1
+            fc[ix, iy, iz, :] = nm.array(
+                [
+                    nodeid[ix, iy, iz],
+                    nodeid[ix, iy + 1, iz],
+                    nodeid[ix + 1, iy + 1, iz],
+                    nodeid[ix + 1, iy, iz],
+                ]
+            ).transpose()
+            fc[ix, iy, iz + 1, :] = nm.array(
+                [
+                    nodeid[ix, iy, iz + 1],
+                    nodeid[ix + 1, iy, iz + 1],
+                    nodeid[ix + 1, iy + 1, iz + 1],
+                    nodeid[ix, iy + 1, iz + 1],
+                ]
+            ).transpose()
+            nn[ix, iy, iz] = 1
+            nn[ix, iy, iz + 1] += 1
 
             idx = nm.where(nn == 1)
             felems.append(fc[idx])
@@ -381,7 +428,7 @@ def gen_mesh_from_voxels(voxels, dims, etype='q', mtype='v'):
             edim = 2
 
     # reduce inner nodes
-    if mtype == 's':
+    if mtype == "s":
         aux = nm.zeros((nnod,), dtype=nm.int32)
 
         for ii in elems.T:
@@ -396,24 +443,27 @@ def gen_mesh_from_voxels(voxels, dims, etype='q', mtype='v'):
         coors = coors[idx]
 
         for ii in range(elems.shape[1]):
-            elems[:,ii] = aux[elems[:,ii]]
+            elems[:, ii] = aux[elems[:, ii]]
 
-    if etype == 't':
+    if etype == "t":
         elems = elems_q2t(elems)
 
     nel = elems.shape[0]
     nelnd = elems.shape[1]
 
-    mesh = Mesh.from_data('voxel_data',
-                          coors, nm.ones((nnod,), dtype=nm.int32),
-                          {0: nm.ascontiguousarray(elems)},
-                          {0: nm.ones((nel,), dtype=nm.int32)},
-                          {0: '%d_%d' % (edim, nelnd)})
+    mesh = Mesh.from_data(
+        "voxel_data",
+        coors,
+        nm.ones((nnod,), dtype=nm.int32),
+        {0: nm.ascontiguousarray(elems)},
+        {0: nm.ones((nel,), dtype=nm.int32)},
+        {0: "%d_%d" % (edim, nelnd)},
+    )
 
     return mesh
 
-def gen_mesh_from_voxels_mc(voxels, voxelsize,
-                            gmsh3d=False, scale_factor=0.25):
+
+def gen_mesh_from_voxels_mc(voxels, voxelsize, gmsh3d=False, scale_factor=0.25):
     import scipy.spatial as scsp
 
     tri = marching_cubes(voxels, voxelsize)
@@ -422,7 +472,7 @@ def gen_mesh_from_voxels_mc(voxels, voxelsize,
     coors = tri.reshape((nel * nnd, dim))
     # tree = scsp.kdtree.KDTree(coors)
     tree = scsp.ckdtree.cKDTree(coors)
-    eps = nm.max(coors.max(axis=0) - coors.min(axis=0)) *1e-6
+    eps = nm.max(coors.max(axis=0) - coors.min(axis=0)) * 1e-6
     dist, idx = tree.query(coors, k=24, distance_upper_bound=eps)
 
     uniq = set([])
@@ -440,66 +490,84 @@ def gen_mesh_from_voxels_mc(voxels, voxelsize,
         ntri[nm.array(idxs, dtype=np.int)] = ii
         ncoors[ii] = coors[idxs[0]]
 
-    mesh = Mesh.from_data('voxel_mc_data',
-                          ncoors, nm.ones((nnod,), dtype=nm.int32),
-                          {0: nm.ascontiguousarray(ntri.reshape((nel, nnd)))},
-                          {0: nm.ones((nel,), dtype=nm.int32)},
-                          {0: '%d_%d' % (2, 3)})
+    mesh = Mesh.from_data(
+        "voxel_mc_data",
+        ncoors,
+        nm.ones((nnod,), dtype=nm.int32),
+        {0: nm.ascontiguousarray(ntri.reshape((nel, nnd)))},
+        {0: nm.ones((nel,), dtype=nm.int32)},
+        {0: "%d_%d" % (2, 3)},
+    )
 
     if gmsh3d:
         from vtk2stl import vtk2stl
         import tempfile
         import os
 
-        auxfile = os.path.join(tempfile.gettempdir(), 'dicom2fem_aux')
-        vtk_fn = auxfile + '_surfmc.vtk'
-        stl_fn = auxfile + '_surfmc.stl'
-        geo_fn = auxfile + '_surf2vol.geo'
-        mesh_fn = auxfile + '_volmv.mesh'
+        auxfile = os.path.join(tempfile.gettempdir(), "dicom2fem_aux")
+        vtk_fn = auxfile + "_surfmc.vtk"
+        stl_fn = auxfile + "_surfmc.stl"
+        geo_fn = auxfile + "_surf2vol.geo"
+        mesh_fn = auxfile + "_volmv.mesh"
         mesh.write(vtk_fn)
         vtk2stl(vtk_fn, stl_fn)
-        geofile = open(geo_fn, 'wt')
-        geofile.write(gmsh3d_geo.replace('__INFILE__',
-                                         stl_fn).replace('__SCFACTOR__',
-                                                         str(scale_factor)))
+        geofile = open(geo_fn, "wt")
+        geofile.write(
+            gmsh3d_geo.replace("__INFILE__", stl_fn).replace(
+                "__SCFACTOR__", str(scale_factor)
+            )
+        )
         geofile.close()
-        os.system('gmsh -3 -format mesh -o %s %s' % (mesh_fn, geo_fn))
+        os.system("gmsh -3 -format mesh -o %s %s" % (mesh_fn, geo_fn))
         mesh = Mesh.from_file(mesh_fn)
 
     return mesh
 
-usage = '%prog [options]\n' + __doc__.rstrip()
+
+usage = "%prog [options]\n" + __doc__.rstrip()
 help = {
-    'in_file': 'input *.seg file with segmented data',
-    'out_file': 'output mesh file',
+    "in_file": "input *.seg file with segmented data",
+    "out_file": "output mesh file",
 }
 
+
 def main():
-    parser = OptionParser(description='FE mesh generators and smooth functions')
-    parser.add_option('-f','--filename', action='store',
-                      dest='in_filename', default=None,
-                      help=help['in_file'])
-    parser.add_option('-o', '--outputfile', action='store',
-                      dest='out_filename', default='output.vtk',
-                      help=help['out_file'])
+    parser = OptionParser(description="FE mesh generators and smooth functions")
+    parser.add_option(
+        "-f",
+        "--filename",
+        action="store",
+        dest="in_filename",
+        default=None,
+        help=help["in_file"],
+    )
+    parser.add_option(
+        "-o",
+        "--outputfile",
+        action="store",
+        dest="out_filename",
+        default="output.vtk",
+        help=help["out_file"],
+    )
     (options, args) = parser.parse_args()
 
     if options.in_filename is None:
-        raise IOError('No input data!')
+        raise IOError("No input data!")
 
     else:
-        dataraw = loadmat(options.in_filename,
-                          variable_names=['segdata', 'voxelsizemm'])
+        dataraw = loadmat(
+            options.in_filename, variable_names=["segdata", "voxelsizemm"]
+        )
 
-    mesh = gen_mesh_from_voxels(dataraw['segdata'],
-                                dataraw['voxelsizemm'] * 1e-3,
-                                etype='t', mtype='s')
+    mesh = gen_mesh_from_voxels(
+        dataraw["segdata"], dataraw["voxelsizemm"] * 1e-3, etype="t", mtype="s"
+    )
 
     ncoors = smooth_mesh(mesh, n_iter=34, lam=0.6307, mu=-0.6347)
     mesh.coors = ncoors
 
     mesh.write(options.out_filename)
 
+
 if __name__ == "__main__":
     main()
-
