@@ -7,10 +7,12 @@ import os.path as op
 import fnmatch
 import shutil
 from .base import output, Struct, basestr
+
 try:
     import tables as pt
 except:
     pt = None
+
 
 class InDir(Struct):
     """
@@ -23,11 +25,13 @@ class InDir(Struct):
     >>> indir = InDir('output/file1')
     >>> print indir('file2')
     """
+
     def __init__(self, filename):
         self.dir = op.split(op.join(os.getcwd(), filename))[0]
 
     def __call__(self, filename):
         return op.join(self.dir, filename)
+
 
 def ensure_path(filename):
     """
@@ -38,6 +42,7 @@ def ensure_path(filename):
     if dirname and not os.path.exists(dirname):
         os.makedirs(dirname)
 
+
 def locate_files(pattern, root_dir=os.curdir):
     """
     Locate all files matching fiven filename pattern in and below
@@ -46,6 +51,7 @@ def locate_files(pattern, root_dir=os.curdir):
     for dirpath, dirnames, filenames in os.walk(os.path.abspath(root_dir)):
         for filename in fnmatch.filter(filenames, pattern):
             yield os.path.join(dirpath, filename)
+
 
 def remove_files(root_dir):
     """
@@ -58,12 +64,14 @@ def remove_files(root_dir):
         for dirname in dirnames:
             shutil.rmtree(os.path.join(root_dir, dirname))
 
+
 ##
 # 27.04.2006, c
 def get_trunk(filename):
     return op.splitext(op.basename(filename))[0]
 
-def edit_filename(filename, prefix='', suffix='', new_ext=None):
+
+def edit_filename(filename, prefix="", suffix="", new_ext=None):
     """
     Edit a file name by add a prefix, inserting a suffix in front of a file
     name extension or replacing the extension.
@@ -94,6 +102,7 @@ def edit_filename(filename, prefix='', suffix='', new_ext=None):
 
     return new_filename
 
+
 def get_print_info(n_step, fill=None):
     """
     Returns the max. number of digits in range(n_step) and the corresponding
@@ -115,12 +124,13 @@ def get_print_info(n_step, fill=None):
     if n_step > 1:
         n_digit = int(nm.log10(n_step - 1) + 1)
         if fill is None:
-            format = '%%%dd' % n_digit
+            format = "%%%dd" % n_digit
         else:
-            format = '%%%s%dd' % (fill, n_digit)
+            format = "%%%s%dd" % (fill, n_digit)
     else:
         n_digit, format = 0, None
     return n_digit, format
+
 
 def skip_read_line(fd, no_eof=False):
     """
@@ -128,7 +138,7 @@ def skip_read_line(fd, no_eof=False):
     object. Return an empty string at EOF, if `no_eof` is False. If it
     is True, raise the EOFError instead.
     """
-    ls = ''
+    ls = ""
     while 1:
         try:
             line = fd.readline()
@@ -144,10 +154,11 @@ def skip_read_line(fd, no_eof=False):
                 break
 
         ls = line.strip()
-        if ls and (ls[0] != '#'):
+        if ls and (ls[0] != "#"):
             break
 
     return ls
+
 
 def read_token(fd):
     """
@@ -158,21 +169,26 @@ def read_token(fd):
     -----
     Consumes the first whitespace character after the token.
     """
-    out = ''
+    out = ""
     # Skip initial whitespace.
 
     while 1:
         ch = fd.read(1)
-        if ch.isspace(): continue
-        elif len(ch) == 0: return out
-        else: break
+        if ch.isspace():
+            continue
+        elif len(ch) == 0:
+            return out
+        else:
+            break
 
     while not ch.isspace():
         out = out + ch
         ch = fd.read(1)
-        if len(ch) == 0: break
+        if len(ch) == 0:
+            break
 
     return out
+
 
 def read_array(fd, n_row, n_col, dtype):
     """
@@ -187,15 +203,16 @@ def read_array(fd, n_row, n_col, dtype):
         n_col = len(row)
 
     count = n_row * n_col
-    val = nm.fromfile(fd, sep=' ', count=count)
+    val = nm.fromfile(fd, sep=" ", count=count)
 
     if val.shape[0] < count:
-        raise ValueError('(%d, %d) array reading failed!' % (n_row, n_col))
+        raise ValueError("(%d, %d) array reading failed!" % (n_row, n_col))
 
     val = nm.asarray(val, dtype=dtype)
     val.shape = (n_row, n_col)
 
     return val
+
 
 ##
 # c: 05.02.2008, r: 05.02.2008
@@ -207,40 +224,42 @@ def read_list(fd, n_item, dtype):
         vals.append(line)
         ii += len(line)
     if ii > n_item:
-        output('corrupted row?', line, ii, n_item)
+        output("corrupted row?", line, ii, n_item)
         raise ValueError
 
     return vals
 
+
 def write_dict_hdf5(filename, adict, level=0, group=None, fd=None):
 
     if level == 0:
-        fd = pt.openFile(filename, mode='w', title='Recursive dict dump')
-        group = '/'
+        fd = pt.openFile(filename, mode="w", title="Recursive dict dump")
+        group = "/"
 
     for key, val in adict.iteritems():
         if isinstance(val, dict):
-            group2 = fd.createGroup(group, '_' + str(key), '%s group' % key)
+            group2 = fd.createGroup(group, "_" + str(key), "%s group" % key)
             write_dict_hdf5(filename, val, level + 1, group2, fd)
         else:
-            fd.createArray(group, '_' + str(key), val, '%s data' % key)
+            fd.createArray(group, "_" + str(key), val, "%s data" % key)
 
     if level == 0:
         fd.close()
+
 
 def read_dict_hdf5(filename, level=0, group=None, fd=None):
     out = {}
 
     if level == 0:
-        fd = pt.openFile(filename, mode='r')
+        fd = pt.openFile(filename, mode="r")
         group = fd.root
 
     for name, gr in group._v_groups.iteritems():
-        name = name.replace('_', '', 1)
+        name = name.replace("_", "", 1)
         out[name] = read_dict_hdf5(filename, level + 1, gr, fd)
 
     for name, data in group._v_leaves.iteritems():
-        name = name.replace('_', '', 1)
+        name = name.replace("_", "", 1)
         out[name] = data.read()
 
     if level == 0:
@@ -248,37 +267,40 @@ def read_dict_hdf5(filename, level=0, group=None, fd=None):
 
     return out
 
+
 ##
 # 02.07.2007, c
-def write_sparse_matrix_hdf5(filename, mtx, name='a sparse matrix'):
+def write_sparse_matrix_hdf5(filename, mtx, name="a sparse matrix"):
     """Assume CSR/CSC."""
-    fd = pt.openFile(filename, mode='w', title=name)
+    fd = pt.openFile(filename, mode="w", title=name)
     try:
-        info = fd.createGroup('/', 'info')
-        fd.createArray(info, 'dtype', mtx.dtype.str)
-        fd.createArray(info, 'shape', mtx.shape)
-        fd.createArray(info, 'format', mtx.format)
+        info = fd.createGroup("/", "info")
+        fd.createArray(info, "dtype", mtx.dtype.str)
+        fd.createArray(info, "shape", mtx.shape)
+        fd.createArray(info, "format", mtx.format)
 
-        data = fd.createGroup('/', 'data')
-        fd.createArray(data, 'data', mtx.data)
-        fd.createArray(data, 'indptr', mtx.indptr)
-        fd.createArray(data, 'indices', mtx.indices)
+        data = fd.createGroup("/", "data")
+        fd.createArray(data, "data", mtx.data)
+        fd.createArray(data, "indptr", mtx.indptr)
+        fd.createArray(data, "indices", mtx.indices)
 
     except:
-        print('matrix must be in SciPy sparse CSR/CSC format!')
+        print("matrix must be in SciPy sparse CSR/CSC format!")
         print(mtx.__repr__())
         raise
 
     fd.close()
+
 
 ##
 # 02.07.2007, c
 # 08.10.2007
 def read_sparse_matrix_hdf5(filename, output_format=None):
     import scipy.sparse as sp
-    constructors = {'csr' : sp.csr_matrix, 'csc' : sp.csc_matrix}
 
-    fd = pt.openFile(filename, mode='r')
+    constructors = {"csr": sp.csr_matrix, "csc": sp.csc_matrix}
+
+    fd = pt.openFile(filename, mode="r")
     info = fd.root.info
     data = fd.root.data
 
@@ -295,20 +317,24 @@ def read_sparse_matrix_hdf5(filename, output_format=None):
     else:
         constructor = constructors[output_format]
 
-    if format in ['csc', 'csr']:
-        mtx = constructor((data.data.read(),
-                           data.indices.read(), data.indptr.read()),
-                          shape=info.shape.read(), dtype=dtype)
-    elif format == 'coo':
-        mtx = constructor((data.data.read(),
-                           nm.c_[data.rows.read(), data.cols.read()].T),
-                          shape=info.shape.read(), dtype=dtype)
+    if format in ["csc", "csr"]:
+        mtx = constructor(
+            (data.data.read(), data.indices.read(), data.indptr.read()),
+            shape=info.shape.read(),
+            dtype=dtype,
+        )
+    elif format == "coo":
+        mtx = constructor(
+            (data.data.read(), nm.c_[data.rows.read(), data.cols.read()].T),
+            shape=info.shape.read(),
+            dtype=dtype,
+        )
     else:
         print(format)
         raise ValueError
     fd.close()
 
-    if output_format in ['csc', 'csr']:
+    if output_format in ["csc", "csr"]:
         mtx.sort_indices()
 
     return mtx
